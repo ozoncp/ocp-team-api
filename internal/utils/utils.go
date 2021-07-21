@@ -41,8 +41,8 @@ func FilterSlice(slice []string, unwanted []string) []string {
 }
 
 func SplitToBatches(elements []string, batchSize uint) ([][]string, error) {
-	if elements == nil {
-		return nil, errors.New("slice must not be nil")
+	if len(elements) == 0 {
+		return nil, errors.New("slice must not be empty")
 	}
 
 	if batchSize == 0 {
