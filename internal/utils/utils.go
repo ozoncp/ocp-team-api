@@ -6,7 +6,7 @@ import (
 )
 
 func ReverseMap(m map[string]string) map[string]string {
-	if m == nil || len(m) == 0 {
+	if len(m) == 0 {
 		return m
 	}
 
@@ -26,13 +26,13 @@ func FilterSlice(slice []string, unwanted []string) []string {
 
 	filtered := make([]string, 0)
 
-	blackList := make(map[string]struct{})
+	unwantedSet := make(map[string]struct{})
 	for _, el := range unwanted {
-		blackList[el] = struct{}{}
+		unwantedSet[el] = struct{}{}
 	}
 
 	for _, el := range slice {
-		if _, ok := blackList[el]; !ok {
+		if _, ok := unwantedSet[el]; !ok {
 			filtered = append(filtered, el)
 		}
 	}
@@ -53,16 +53,14 @@ func SplitToBatches(elements []string, batchSize uint) ([][]string, error) {
 		return [][]string{elements}, nil
 	}
 
-	batches := make([][]string, 0,  int(math.Ceil(float64(len(elements)) / float64(batchSize))))
+	batches := make([][]string, int(math.Ceil(float64(len(elements)) / float64(batchSize))))
 
 	for i := 0; i < cap(batches); i++ {
-		var batch []string
 		if start, end := i*int(batchSize), (i+1)*int(batchSize); end < len(elements) {
-			batch = elements[start:end]
+			batches[i] = elements[start:end]
 		} else {
-			batch = elements[start:]
+			batches[i] = elements[start:]
 		}
-		batches = append(batches, batch)
 	}
 
 	return batches, nil
