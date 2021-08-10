@@ -7,19 +7,19 @@ import (
 	"math"
 )
 
-func SplitToBulks(teams []models.Team, batchSize uint)[][]models.Team {
-	if len(teams) == 0 || batchSize == 0 {
+func SplitToBulks(teams []models.Team, batchSize int)[][]models.Team {
+	if len(teams) == 0 || batchSize <= 0 {
 		return [][]models.Team{}
 	}
 
-	if int(batchSize) >= len(teams) {
+	if batchSize >= len(teams) {
 		return [][]models.Team{teams}
 	}
 
 	batches := make([][]models.Team, int(math.Ceil(float64(len(teams)) / float64(batchSize))))
 
 	for i := 0; i < cap(batches); i++ {
-		if start, end := i*int(batchSize), (i+1)*int(batchSize); end < len(teams) {
+		if start, end := i*batchSize, (i+1)*batchSize; end < len(teams) {
 			batches[i] = teams[start:end]
 		} else {
 			batches[i] = teams[start:]
