@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+import "google/api/annotations.proto";
+
+package ocp.team.api;
+
+option go_package = "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api;ocp_team_api";
+
+service OcpTeamApi {
+    
+    rpc CreateTeamV1(CreateTeamV1Request) returns (CreateTeamV1Response) {
+        option (google.api.http) = {
+            post: "/v1/teams",
+            body: "*"
+        };
+    }
+
+    rpc DescribeTeamV1(DescribeTeamV1Request) returns (DescribeTeamV1Response) {
+        option (google.api.http) = {
+            get: "/v1/teams/{id}"
+        };
+    }
+
+    rpc ListTeamsV1(ListTeamsV1Request) returns (ListTeamsV1Response) {
+        option (google.api.http) = {
+            get: "/v1/teams"
+        };
+    }
+
+    rpc RemoveTeamV1(RemoveTeamV1Request) returns (RemoveTeamV1Response) {
+        option (google.api.http) = {
+            delete: "/v1/teams/{id}"
+        };
+    }
+}
+
+message CreateTeamV1Request {
+    string name = 1;
+    string description = 2;
+}
+
+message CreateTeamV1Response {
+    string id = 1;
+}
+
+message DescribeTeamV1Request {
+    uint64 id = 1;
+}
+
+message DescribeTeamV1Response {
+    Team team = 1;
+}
+
+message ListTeamsV1Request {
+    uint64 limit = 1;
+    uint64 offset = 2;
+}
+
+message ListTeamsV1Response {
+    repeated Team teams = 1;
+}
+
+message RemoveTeamV1Request {
+    uint64 id = 1;
+}
+
+message RemoveTeamV1Response {}
+
+message Team {
+    uint64 Id = 1;
+    string name = 2;
+    string description = 3;
+}
