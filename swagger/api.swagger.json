@@ -185,7 +185,7 @@
     "apiTeam": {
       "type": "object",
       "properties": {
-        "Id": {
+        "id": {
           "type": "string",
           "format": "uint64"
         },

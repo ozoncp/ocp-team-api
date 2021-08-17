@@ -67,7 +67,7 @@ message RemoveTeamV1Request {
 message RemoveTeamV1Response {}
 
 message Team {
-    uint64 Id = 1;
+    uint64 id = 1;
     string name = 2;
     string description = 3;
 }

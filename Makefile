@@ -32,9 +32,9 @@ PHONY: .generate
 .PHONY: generate
 generate: .vendor-proto .generate
 
-.PHONY: build
-build:
-		go build -o $(LOCAL_BIN)/ocp-team-api cmd/ocp-team-api/main.go
+.PHONY: .build
+.build:
+		go build -o bin/ocp-team-api cmd/ocp-team-api/main.go
 
 .PHONY: vendor-proto
 vendor-proto: .vendor-proto
@@ -61,11 +61,12 @@ install-go-deps: .install-go-deps
 .PHONY: .install-go-deps
 .install-go-deps:
 		ls go.mod || go mod init github.com/ozoncp/ocp-team-api
-		GOBIN=$(LOCAL_BIN) go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-		GOBIN=$(LOCAL_BIN) go get -u github.com/golang/protobuf/proto
-		GOBIN=$(LOCAL_BIN) go get -u github.com/golang/protobuf/protoc-gen-go
-		GOBIN=$(LOCAL_BIN) go get -u google.golang.org/grpc
-		GOBIN=$(LOCAL_BIN) go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
-		GOBIN=$(LOCAL_BIN) go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-		GOBIN=$(LOCAL_BIN) go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
-
+		go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+		go get -u github.com/golang/protobuf/proto
+		go get -u github.com/golang/protobuf/protoc-gen-go
+		go get -u google.golang.org/grpc
+		go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
+		go get -u github.com/envoyproxy/protoc-gen-validate
+		go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+		go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+		go install github.com/envoyproxy/protoc-gen-validate

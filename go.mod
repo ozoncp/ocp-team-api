@@ -16,7 +16,7 @@ require (
 	github.com/spf13/afero v1.6.0 // indirect
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
-	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912 // indirect
+	golang.org/x/sys v0.0.0-20210817142637-7d9622a276b7 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20210816143620-e15ff196659d // indirect
 	google.golang.org/grpc v1.40.0 // indirect
@@ -24,3 +24,5 @@ require (
 	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
+
+replace github.com/ozoncp/ocp-team-api/pkg/ocp-team-api => ./pkg/ocp-team-api
