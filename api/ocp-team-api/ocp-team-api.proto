@@ -15,7 +15,7 @@ service OcpTeamApi {
         };
     }
 
-    rpc DescribeTeamV1(DescribeTeamV1Request) returns (DescribeTeamV1Response) {
+    rpc GetTeamV1(GetTeamV1Request) returns (GetTeamV1Response) {
         option (google.api.http) = {
             get: "/v1/teams/{id}"
         };
@@ -43,11 +43,11 @@ message CreateTeamV1Response {
     string id = 1;
 }
 
-message DescribeTeamV1Request {
+message GetTeamV1Request {
     uint64 id = 1;
 }
 
-message DescribeTeamV1Response {
+message GetTeamV1Response {
     Team team = 1;
 }
 

@@ -21,11 +21,11 @@ func (a *api) CreateTeamV1(
 	return &desc.CreateTeamV1Response{}, nil
 }
 
-func (a *api) DescribeTeamV1(
+func (a *api) GetTeamV1(
 	ctx context.Context,
-	req *desc.DescribeTeamV1Request) (*desc.DescribeTeamV1Response, error) {
-	log.Printf("Describe team (id=%d)", req.Id)
-	return &desc.DescribeTeamV1Response{}, nil
+	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
+	log.Printf("Get team (id=%d)", req.Id)
+	return &desc.GetTeamV1Response{}, nil
 }
 
 func (a *api) ListTeamsV1(

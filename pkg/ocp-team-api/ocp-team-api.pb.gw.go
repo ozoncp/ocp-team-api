@@ -67,8 +67,8 @@ func local_request_OcpTeamApi_CreateTeamV1_0(ctx context.Context, marshaler runt
 
 }
 
-func request_OcpTeamApi_DescribeTeamV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpTeamApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DescribeTeamV1Request
+func request_OcpTeamApi_GetTeamV1_0(ctx context.Context, marshaler runtime.Marshaler, client OcpTeamApiClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetTeamV1Request
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -89,13 +89,13 @@ func request_OcpTeamApi_DescribeTeamV1_0(ctx context.Context, marshaler runtime.
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := client.DescribeTeamV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetTeamV1(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_OcpTeamApi_DescribeTeamV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpTeamApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq DescribeTeamV1Request
+func local_request_OcpTeamApi_GetTeamV1_0(ctx context.Context, marshaler runtime.Marshaler, server OcpTeamApiServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetTeamV1Request
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -116,7 +116,7 @@ func local_request_OcpTeamApi_DescribeTeamV1_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
 	}
 
-	msg, err := server.DescribeTeamV1(ctx, &protoReq)
+	msg, err := server.GetTeamV1(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -240,7 +240,7 @@ func RegisterOcpTeamApiHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
-	mux.Handle("GET", pattern_OcpTeamApi_DescribeTeamV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_OcpTeamApi_GetTeamV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -251,7 +251,7 @@ func RegisterOcpTeamApiHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_OcpTeamApi_DescribeTeamV1_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_OcpTeamApi_GetTeamV1_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -259,7 +259,7 @@ func RegisterOcpTeamApiHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 			return
 		}
 
-		forward_OcpTeamApi_DescribeTeamV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OcpTeamApi_GetTeamV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -370,7 +370,7 @@ func RegisterOcpTeamApiHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 
 	})
 
-	mux.Handle("GET", pattern_OcpTeamApi_DescribeTeamV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_OcpTeamApi_GetTeamV1_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -379,14 +379,14 @@ func RegisterOcpTeamApiHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_OcpTeamApi_DescribeTeamV1_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_OcpTeamApi_GetTeamV1_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_OcpTeamApi_DescribeTeamV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_OcpTeamApi_GetTeamV1_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -436,7 +436,7 @@ func RegisterOcpTeamApiHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 var (
 	pattern_OcpTeamApi_CreateTeamV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "teams"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_OcpTeamApi_DescribeTeamV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "teams", "id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_OcpTeamApi_GetTeamV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "teams", "id"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_OcpTeamApi_ListTeamsV1_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "teams"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -446,7 +446,7 @@ var (
 var (
 	forward_OcpTeamApi_CreateTeamV1_0 = runtime.ForwardResponseMessage
 
-	forward_OcpTeamApi_DescribeTeamV1_0 = runtime.ForwardResponseMessage
+	forward_OcpTeamApi_GetTeamV1_0 = runtime.ForwardResponseMessage
 
 	forward_OcpTeamApi_ListTeamsV1_0 = runtime.ForwardResponseMessage
 
