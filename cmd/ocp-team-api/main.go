@@ -5,9 +5,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/ozoncp/ocp-team-api/internal/api"
 	desc "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -22,55 +22,53 @@ const (
 	httpPort           = ":8080"
 )
 
-var (
-	grpcServer  *grpc.Server
-	httpGateway *http.Server
-)
-
-func runGrpcServer() error {
-	listen, err := net.Listen("tcp", grpcPort)
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
-	}
-
-	grpcServer = grpc.NewServer()
+func createGrpcServer() *grpc.Server {
+	grpcServer := grpc.NewServer()
 	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi())
 
-	return grpcServer.Serve(listen)
+	return grpcServer
 }
 
-func runHttpGateway(ctx context.Context) error {
+func createHttpGateway(ctx context.Context) *http.Server {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
 	err := desc.RegisterOcpTeamApiHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+
 	if err != nil {
-		panic(err)
+		log.Fatal().Msgf("cannot register http handlers %v", err)
 	}
 
-	httpGateway = &http.Server{
+	return &http.Server{
 		Addr:    httpPort,
 		Handler: mux,
 	}
-
-	if err = httpGateway.ListenAndServe(); err != http.ErrServerClosed {
-		return err
-	}
-
-	return nil
 }
 
 func main() {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
+	g, ctx := errgroup.WithContext(ctx)
 
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-	g, ctx := errgroup.WithContext(ctx)
+	grpcServer := createGrpcServer()
+	httpGateway := createHttpGateway(ctx)
 
-	g.Go(runGrpcServer)
-	g.Go(func() error { return runHttpGateway(ctx) })
+	g.Go(func() error {
+		listen, err := net.Listen("tcp", grpcPort)
+		if err != nil {
+			log.Fatal().Msgf("failed to listen: %v", err)
+		}
+
+		log.Info().Msgf("grpc server started on port %s", grpcPort)
+		return grpcServer.Serve(listen)
+	})
+	g.Go(func() error {
+		log.Info().Msgf("http gateway started on port %s", httpPort)
+		return httpGateway.ListenAndServe()
+	})
 
 	select {
 	case <-interrupt:
@@ -79,23 +77,23 @@ func main() {
 		break
 	}
 
-	log.Println("received shutdown signal")
+	log.Warn().Msg("received shutdown signal")
 
 	cancel()
 
 	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), 5 * time.Second)
 	defer shutdownCtxCancel()
 
-	if httpGateway != nil {
-		_ = httpGateway.Shutdown(shutdownCtx)
-		log.Println("shutdown http gateway")
-	}
-	if grpcServer != nil {
-		grpcServer.GracefulStop()
-		log.Println("shutdown grpc server")
+	log.Info().Msg("shutdown http gateway")
+	err := httpGateway.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Debug().Msgf("http gateway shutdown failed %v", err)
 	}
 
-	if err := g.Wait(); err != nil {
-		log.Fatal(err)
+	log.Info().Msg("shutdown grpc server")
+	grpcServer.GracefulStop()
+
+	if err = g.Wait(); err != nil && err != http.ErrServerClosed {
+		log.Fatal().Msg(err.Error())
 	}
 }
