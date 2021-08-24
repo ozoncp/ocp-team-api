@@ -8,7 +8,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"strconv"
 )
 
 type api struct {
@@ -36,7 +35,7 @@ func (a *api) CreateTeamV1(
 
 	log.Info().Msgf("new team was created successfully with id=%d", id)
 
-	return &desc.CreateTeamV1Response{Id: strconv.FormatUint(id, 10)}, nil
+	return &desc.CreateTeamV1Response{Id: id}, nil
 }
 
 func (a *api) GetTeamV1(
@@ -53,8 +52,8 @@ func (a *api) GetTeamV1(
 
 	response := &desc.GetTeamV1Response{
 		Team: &desc.Team{
-			Id: team.Id,
-			Name: team.Name,
+			Id:          team.Id,
+			Name:        team.Name,
 			Description: team.Description,
 		},
 	}
@@ -77,8 +76,8 @@ func (a *api) ListTeamsV1(
 	responseTeams := make([]*desc.Team, len(teams), cap(teams))
 	for i, team := range teams {
 		responseTeams[i] = &desc.Team{
-			Id: team.Id,
-			Name: team.Name,
+			Id:          team.Id,
+			Name:        team.Name,
 			Description: team.Description,
 		}
 	}
