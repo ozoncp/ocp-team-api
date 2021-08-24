@@ -1,6 +1,7 @@
 package flusher_test
 
 import (
+	"context"
 	"errors"
 	"github.com/golang/mock/gomock"
 	. "github.com/onsi/ginkgo"
@@ -42,7 +43,7 @@ var _ = Describe("Flusher", func() {
 
 	Context("invalid flusher ", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().AddTeams(gomock.Any()).Return(nil).Times(0)
+			mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(nil).Times(0)
 
 			teams = nonEmptyTeams
 		})
@@ -56,7 +57,7 @@ var _ = Describe("Flusher", func() {
 		})
 
 		AfterEach(func() {
-			gomega.Expect(f.Flush(teams)).Should(gomega.BeEmpty())
+			gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.BeEmpty())
 		})
 	})
 
@@ -71,9 +72,9 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("returns empty slice", func() {
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(nil).Times(0)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(nil).Times(0)
 
-				gomega.Expect(f.Flush(teams)).Should(gomega.BeEmpty())
+				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.BeEmpty())
 			})
 		})
 
@@ -83,9 +84,9 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("returns empty slice", func() {
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(nil).Times(3)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(nil).Times(3)
 
-				gomega.Expect(f.Flush(teams)).Should(gomega.BeEmpty())
+				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.BeEmpty())
 			})
 		})
 
@@ -95,23 +96,23 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("cannot flush all teams", func() {
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(mockError).Times(3)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(3)
 
-				gomega.Expect(f.Flush(teams)).Should(gomega.Equal(teams))
+				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams))
 			})
 
 			It("cannot flush last 3 teams", func() {
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(nil).Times(1)
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(mockError).Times(2)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(2)
 
-				gomega.Expect(f.Flush(teams)).Should(gomega.Equal(teams[2:]))
+				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams[2:]))
 			})
 
 			It("cannot flush first 2 teams", func() {
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(mockError).Times(1)
-				mockRepo.EXPECT().AddTeams(gomock.Any()).Return(nil).Times(2)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(1)
+				mockRepo.EXPECT().AddTeams(gomock.Any(), gomock.Any()).Return(nil).Times(2)
 
-				gomega.Expect(f.Flush(teams)).Should(gomega.Equal(teams[:2]))
+				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams[:2]))
 			})
 		})
 	})

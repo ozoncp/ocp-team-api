@@ -3,9 +3,9 @@ package models
 import "fmt"
 
 type Team struct {
-	Id uint64
-	Name string
-	Description string
+	Id uint64	`db:"id"`
+	Name string	`db:"name"`
+	Description string	`db:"description"`
 }
 
 func (t Team) String() string {
