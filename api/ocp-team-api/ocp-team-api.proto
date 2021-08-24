@@ -40,7 +40,7 @@ message CreateTeamV1Request {
 }
 
 message CreateTeamV1Response {
-    string id = 1;
+    uint64 id = 1;
 }
 
 message GetTeamV1Request {

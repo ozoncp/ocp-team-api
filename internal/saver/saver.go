@@ -1,6 +1,7 @@
 package saver
 
 import (
+	"context"
 	"errors"
 	"github.com/ozoncp/ocp-team-api/internal/flusher"
 	"github.com/ozoncp/ocp-team-api/internal/models"
@@ -58,7 +59,7 @@ func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) Sa
 				s.flush()
 			case <- s.doneCh:
 				s.state = closed
-				s.flusher.Flush(s.teams)
+				s.flusher.Flush(context.TODO(), s.teams)
 				close(s.doneCh)
 				close(s.teamsCh)
 				return
@@ -70,7 +71,7 @@ func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) Sa
 }
 
 func (s *saver) flush() {
-	failed := s.flusher.Flush(s.teams)
+	failed := s.flusher.Flush(context.TODO(), s.teams)
 	s.teams = make([]models.Team, 0, s.capacity)
 	s.teams = append(s.teams, failed...)
 }

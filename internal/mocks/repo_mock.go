@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
@@ -34,46 +35,74 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 	return m.recorder
 }
 
-// AddTeams mocks base method.
-func (m *MockRepo) AddTeams(arg0 []models.Team) error {
+// CreateTeam mocks base method.
+func (m *MockRepo) CreateTeam(arg0 context.Context, arg1 *models.Team) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddTeams", arg0)
+	ret := m.ctrl.Call(m, "CreateTeam", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddTeams indicates an expected call of AddTeams.
-func (mr *MockRepoMockRecorder) AddTeams(arg0 interface{}) *gomock.Call {
+// CreateTeam indicates an expected call of CreateTeam.
+func (mr *MockRepoMockRecorder) CreateTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTeams", reflect.TypeOf((*MockRepo)(nil).AddTeams), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeam", reflect.TypeOf((*MockRepo)(nil).CreateTeam), arg0, arg1)
 }
 
-// DescribeTeam mocks base method.
-func (m *MockRepo) DescribeTeam(arg0 uint64) (*models.Team, error) {
+// CreateTeams mocks base method.
+func (m *MockRepo) CreateTeams(arg0 context.Context, arg1 []models.Team) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DescribeTeam", arg0)
+	ret := m.ctrl.Call(m, "CreateTeams", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateTeams indicates an expected call of CreateTeams.
+func (mr *MockRepoMockRecorder) CreateTeams(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeams", reflect.TypeOf((*MockRepo)(nil).CreateTeams), arg0, arg1)
+}
+
+// GetTeam mocks base method.
+func (m *MockRepo) GetTeam(arg0 context.Context, arg1 uint64) (*models.Team, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetTeam", arg0, arg1)
 	ret0, _ := ret[0].(*models.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// DescribeTeam indicates an expected call of DescribeTeam.
-func (mr *MockRepoMockRecorder) DescribeTeam(arg0 interface{}) *gomock.Call {
+// GetTeam indicates an expected call of GetTeam.
+func (mr *MockRepoMockRecorder) GetTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DescribeTeam", reflect.TypeOf((*MockRepo)(nil).DescribeTeam), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetTeam", reflect.TypeOf((*MockRepo)(nil).GetTeam), arg0, arg1)
 }
 
 // ListTeams mocks base method.
-func (m *MockRepo) ListTeams(arg0, arg1 uint64) ([]models.Team, error) {
+func (m *MockRepo) ListTeams(arg0 context.Context, arg1, arg2 uint64) ([]models.Team, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListTeams", arg0, arg1)
+	ret := m.ctrl.Call(m, "ListTeams", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]models.Team)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // ListTeams indicates an expected call of ListTeams.
-func (mr *MockRepoMockRecorder) ListTeams(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockRepoMockRecorder) ListTeams(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTeams", reflect.TypeOf((*MockRepo)(nil).ListTeams), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListTeams", reflect.TypeOf((*MockRepo)(nil).ListTeams), arg0, arg1, arg2)
+}
+
+// RemoveTeam mocks base method.
+func (m *MockRepo) RemoveTeam(arg0 context.Context, arg1 uint64) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RemoveTeam", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RemoveTeam indicates an expected call of RemoveTeam.
+func (mr *MockRepoMockRecorder) RemoveTeam(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTeam", reflect.TypeOf((*MockRepo)(nil).RemoveTeam), arg0, arg1)
 }
