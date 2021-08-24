@@ -29,7 +29,7 @@ func (a *api) CreateTeamV1(
 	id, err := a.repo.AddTeam(ctx, models.Team{Name: req.Name, Description: req.Description})
 
 	if err != nil {
-		log.Warn().Msgf("failed to create team %v", err)
+		log.Info().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -46,7 +46,7 @@ func (a *api) GetTeamV1(
 	team, err := a.repo.GetTeam(ctx, req.Id)
 
 	if err != nil {
-		log.Warn().Msgf("failed to fetch team with id=%d: %v", req.Id, err)
+		log.Info().Err(err)
 		return nil, status.Error(codes.NotFound, err.Error())
 	}
 
@@ -69,7 +69,7 @@ func (a *api) ListTeamsV1(
 	teams, err := a.repo.ListTeams(ctx, req.Limit, req.Offset)
 
 	if err != nil {
-		log.Warn().Msgf("failed to fetch teams: %v", err)
+		log.Info().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -92,7 +92,7 @@ func (a *api) RemoveTeamV1(
 
 	err := a.repo.RemoveTeam(ctx, req.Id)
 	if err != nil {
-		log.Warn().Msgf("failed to delete team with id=%d", req.Id)
+		log.Info().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
