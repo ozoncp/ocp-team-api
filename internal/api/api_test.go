@@ -35,15 +35,12 @@ var _ = Describe("Api", func() {
 
 	Context("CreateTeamV1()", func() {
 		It("returns response", func() {
-			expectedResponse := &desc.CreateTeamV1Response{Id: uint64(1)}
-
-			mockRepo.EXPECT().AddTeam(gomock.Any(), gomock.Any()).Return(uint64(1), nil)
+			mockRepo.EXPECT().CreateTeam(gomock.Any(), gomock.Any()).Return(nil)
 
 			req := &desc.CreateTeamV1Request{Name: "Name", Description: "Description"}
 
-			actualResponse, err := s.CreateTeamV1(context.Background(), req)
+			_, err := s.CreateTeamV1(context.Background(), req)
 			Expect(err).Should(BeNil())
-			Expect(actualResponse.Id).Should(Equal(expectedResponse.Id))
 		})
 	})
 

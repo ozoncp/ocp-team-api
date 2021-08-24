@@ -24,7 +24,9 @@ const (
 	grpcServerEndpoint = "localhost:8082"
 	httpPort           = ":8080"
 
-	dsn                = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
+	dsn = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
+
+	shutdownTimeout = 5 * time.Second
 )
 
 func createGrpcServer(db *sqlx.DB) *grpc.Server {
@@ -50,14 +52,14 @@ func createHttpGateway(ctx context.Context) *http.Server {
 	}
 }
 
-func db() *sqlx.DB {
+func db() (*sqlx.DB, error) {
 	db, err := sqlx.Connect("pgx", dsn)
 
 	if err != nil {
-		log.Fatal().Msg(err.Error())
+		return nil, err
 	}
 
-	return db
+	return db, nil
 }
 
 func main() {
@@ -68,7 +70,10 @@ func main() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
 
-	db := db()
+	db, err := db()
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
 	defer db.Close()
 
 	grpcServer := createGrpcServer(db)
@@ -99,11 +104,11 @@ func main() {
 
 	cancel()
 
-	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer shutdownCtxCancel()
 
 	log.Info().Msg("shutdown http gateway")
-	err := httpGateway.Shutdown(shutdownCtx)
+	err = httpGateway.Shutdown(shutdownCtx)
 	if err != nil {
 		log.Debug().Msgf("http gateway shutdown failed %v", err)
 	}

@@ -35,33 +35,32 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 	return m.recorder
 }
 
-// AddTeam mocks base method.
-func (m *MockRepo) AddTeam(arg0 context.Context, arg1 models.Team) (uint64, error) {
+// CreateTeam mocks base method.
+func (m *MockRepo) CreateTeam(arg0 context.Context, arg1 *models.Team) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddTeam", arg0, arg1)
-	ret0, _ := ret[0].(uint64)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddTeam indicates an expected call of AddTeam.
-func (mr *MockRepoMockRecorder) AddTeam(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTeam", reflect.TypeOf((*MockRepo)(nil).AddTeam), arg0, arg1)
-}
-
-// AddTeams mocks base method.
-func (m *MockRepo) AddTeams(arg0 context.Context, arg1 []models.Team) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddTeams", arg0, arg1)
+	ret := m.ctrl.Call(m, "CreateTeam", arg0, arg1)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddTeams indicates an expected call of AddTeams.
-func (mr *MockRepoMockRecorder) AddTeams(arg0, arg1 interface{}) *gomock.Call {
+// CreateTeam indicates an expected call of CreateTeam.
+func (mr *MockRepoMockRecorder) CreateTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddTeams", reflect.TypeOf((*MockRepo)(nil).AddTeams), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeam", reflect.TypeOf((*MockRepo)(nil).CreateTeam), arg0, arg1)
+}
+
+// CreateTeams mocks base method.
+func (m *MockRepo) CreateTeams(arg0 context.Context, arg1 []models.Team) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateTeams", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// CreateTeams indicates an expected call of CreateTeams.
+func (mr *MockRepoMockRecorder) CreateTeams(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTeams", reflect.TypeOf((*MockRepo)(nil).CreateTeams), arg0, arg1)
 }
 
 // GetTeam mocks base method.

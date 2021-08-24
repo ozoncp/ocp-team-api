@@ -13,7 +13,7 @@ type Flusher interface {
 
 type flusher struct {
 	chunkSize int
-	teamRepo repo.Repo
+	teamRepo  repo.Repo
 }
 
 func NewFlusher(
@@ -32,7 +32,7 @@ func (f *flusher) Flush(ctx context.Context, teams []models.Team) []models.Team 
 	failed := make([]models.Team, 0)
 
 	for _, chunk := range batches {
-		if err := f.teamRepo.AddTeams(ctx, chunk); err != nil {
+		if err := f.teamRepo.CreateTeams(ctx, chunk); err != nil {
 			failed = append(failed, chunk...)
 		}
 	}

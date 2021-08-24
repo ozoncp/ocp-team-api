@@ -26,16 +26,18 @@ func (a *api) CreateTeamV1(
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	log.Printf("Create team (name=%s, description=%s)", req.Name, req.Description)
 
-	id, err := a.repo.AddTeam(ctx, models.Team{Name: req.Name, Description: req.Description})
+	team := models.Team{Name: req.Name, Description: req.Description}
+
+	err := a.repo.CreateTeam(ctx, &team)
 
 	if err != nil {
 		log.Info().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	log.Info().Msgf("new team was created successfully with id=%d", id)
+	log.Info().Msgf("new team was created successfully with id=%d", team.Id)
 
-	return &desc.CreateTeamV1Response{Id: id}, nil
+	return &desc.CreateTeamV1Response{Id: team.Id}, nil
 }
 
 func (a *api) GetTeamV1(
@@ -47,7 +49,7 @@ func (a *api) GetTeamV1(
 
 	if err != nil {
 		log.Info().Err(err)
-		return nil, status.Error(codes.NotFound, err.Error())
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	response := &desc.GetTeamV1Response{
@@ -73,13 +75,13 @@ func (a *api) ListTeamsV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	responseTeams := make([]*desc.Team, len(teams), cap(teams))
-	for i, team := range teams {
-		responseTeams[i] = &desc.Team{
+	responseTeams := make([]*desc.Team, 0, len(teams))
+	for _, team := range teams {
+		responseTeams = append(responseTeams, &desc.Team{
 			Id:          team.Id,
 			Name:        team.Name,
 			Description: team.Description,
-		}
+		})
 	}
 
 	return &desc.ListTeamsV1Response{Teams: responseTeams}, nil

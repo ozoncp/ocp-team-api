@@ -12,8 +12,8 @@ const (
 )
 
 type Repo interface {
-	AddTeam(ctx context.Context, team models.Team) (uint64, error)
-	AddTeams(ctx context.Context, teams []models.Team) error
+	CreateTeam(ctx context.Context, team *models.Team) error
+	CreateTeams(ctx context.Context, teams []models.Team) error
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, error)
 	RemoveTeam(ctx context.Context, teamId uint64) error
@@ -27,7 +27,7 @@ type repo struct {
 	db *sqlx.DB
 }
 
-func (r *repo) AddTeam(ctx context.Context, team models.Team) (uint64, error) {
+func (r *repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		Values(team.Name, team.Description).
@@ -37,10 +37,10 @@ func (r *repo) AddTeam(ctx context.Context, team models.Team) (uint64, error) {
 
 	err := query.QueryRowContext(ctx).Scan(&team.Id)
 
-	return team.Id, err
+	return err
 }
 
-func (r *repo) AddTeams(ctx context.Context, teams []models.Team) error {
+func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) error {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		RunWith(r.db).
@@ -86,7 +86,7 @@ func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 	for rows.Next() {
 		var team models.Team
 		if err := rows.Scan(&team.Id, &team.Name, &team.Description); err != nil {
-			continue
+			return nil, err
 		}
 
 		teams = append(teams, team)
