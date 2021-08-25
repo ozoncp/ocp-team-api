@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
+	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/models"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
 	"github.com/ozoncp/ocp-team-api/internal/utils"
@@ -39,6 +40,7 @@ func (a *api) CreateTeamV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	metrics.IncCreateSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(team.Id, kafka.Create))
 	if err != nil {
 		log.Info().Err(err)
@@ -140,6 +142,7 @@ func (a *api) RemoveTeamV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	metrics.IncDeleteSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(req.Id, kafka.Delete))
 	if err != nil {
 		log.Info().Err(err)
@@ -166,6 +169,7 @@ func (a *api) UpdateTeamV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	metrics.IncUpdateSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(team.Id, kafka.Update))
 	if err != nil {
 		log.Info().Err(err)

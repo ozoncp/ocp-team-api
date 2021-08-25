@@ -7,8 +7,10 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-team-api/internal/api"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
+	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
 	desc "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -24,6 +26,7 @@ const (
 	grpcPort           = ":8082"
 	grpcServerEndpoint = "localhost:8082"
 	httpPort           = ":8080"
+	prometheusPort     = ":9100"
 
 	dsn = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
 
@@ -49,6 +52,16 @@ func createHttpGateway(ctx context.Context) *http.Server {
 
 	return &http.Server{
 		Addr:    httpPort,
+		Handler: mux,
+	}
+}
+
+func createMetricsHttpHandler() *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/metrics", promhttp.Handler())
+
+	return &http.Server{
+		Addr:    prometheusPort,
 		Handler: mux,
 	}
 }
@@ -84,6 +97,7 @@ func main() {
 
 	grpcServer := createGrpcServer(db, kafkaProducer)
 	httpGateway := createHttpGateway(ctx)
+	metricsHttpHandler := createMetricsHttpHandler()
 
 	g.Go(func() error {
 		listen, err := net.Listen("tcp", grpcPort)
@@ -97,6 +111,11 @@ func main() {
 	g.Go(func() error {
 		log.Info().Msgf("http gateway started on port %s", httpPort)
 		return httpGateway.ListenAndServe()
+	})
+	g.Go(func() error {
+		log.Info().Msgf("metrics http handler started on port %s", prometheusPort)
+		metrics.Register()
+		return metricsHttpHandler.ListenAndServe()
 	})
 
 	select {
@@ -117,6 +136,12 @@ func main() {
 	err = httpGateway.Shutdown(shutdownCtx)
 	if err != nil {
 		log.Debug().Msgf("http gateway shutdown failed %v", err)
+	}
+
+	log.Info().Msg("shutdown metrics http handler")
+	err = metricsHttpHandler.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Debug().Msgf("metric http handler shutdown failed %v", err)
 	}
 
 	log.Info().Msg("shutdown grpc server")

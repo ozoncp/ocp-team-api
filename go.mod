@@ -20,6 +20,7 @@ require (
 	github.com/onsi/gomega v1.10.1
 	github.com/pkg/profile v1.2.1 // indirect
 	github.com/pressly/goose/v3 v3.1.0 // indirect
+	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/rs/zerolog v1.23.0 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
