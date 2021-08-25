@@ -6,6 +6,7 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-team-api/internal/api"
+	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
 	desc "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api"
 	"github.com/rs/zerolog/log"
@@ -29,9 +30,9 @@ const (
 	shutdownTimeout = 5 * time.Second
 )
 
-func createGrpcServer(db *sqlx.DB) *grpc.Server {
+func createGrpcServer(db *sqlx.DB, producer kafka.Producer) *grpc.Server {
 	grpcServer := grpc.NewServer()
-	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db)))
+	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db), producer))
 
 	return grpcServer
 }
@@ -76,7 +77,12 @@ func main() {
 	}
 	defer db.Close()
 
-	grpcServer := createGrpcServer(db)
+	kafkaProducer, err := kafka.NewProducer()
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+
+	grpcServer := createGrpcServer(db, kafkaProducer)
 	httpGateway := createHttpGateway(ctx)
 
 	g.Go(func() error {
