@@ -50,11 +50,12 @@ func (mr *MockRepoMockRecorder) CreateTeam(arg0, arg1 interface{}) *gomock.Call 
 }
 
 // CreateTeams mocks base method.
-func (m *MockRepo) CreateTeams(arg0 context.Context, arg1 []models.Team) error {
+func (m *MockRepo) CreateTeams(arg0 context.Context, arg1 []models.Team) ([]uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CreateTeams", arg0, arg1)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].([]uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // CreateTeams indicates an expected call of CreateTeams.
@@ -105,4 +106,18 @@ func (m *MockRepo) RemoveTeam(arg0 context.Context, arg1 uint64) error {
 func (mr *MockRepoMockRecorder) RemoveTeam(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTeam", reflect.TypeOf((*MockRepo)(nil).RemoveTeam), arg0, arg1)
+}
+
+// UpdateTeam mocks base method.
+func (m *MockRepo) UpdateTeam(arg0 context.Context, arg1 models.Team) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateTeam", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateTeam indicates an expected call of UpdateTeam.
+func (mr *MockRepoMockRecorder) UpdateTeam(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateTeam", reflect.TypeOf((*MockRepo)(nil).UpdateTeam), arg0, arg1)
 }

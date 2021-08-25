@@ -43,7 +43,7 @@ var _ = Describe("Flusher", func() {
 
 	Context("invalid flusher ", func() {
 		BeforeEach(func() {
-			mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil).Times(0)
+			mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, nil).Times(0)
 
 			teams = nonEmptyTeams
 		})
@@ -72,7 +72,7 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("returns empty slice", func() {
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil).Times(0)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, nil).Times(0)
 
 				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.BeEmpty())
 			})
@@ -84,7 +84,7 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("returns empty slice", func() {
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil).Times(3)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, nil).Times(3)
 
 				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.BeEmpty())
 			})
@@ -96,21 +96,21 @@ var _ = Describe("Flusher", func() {
 			})
 
 			It("cannot flush all teams", func() {
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(3)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, mockError).Times(3)
 
 				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams))
 			})
 
 			It("cannot flush last 3 teams", func() {
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil).Times(1)
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(2)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, nil).Times(1)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, mockError).Times(2)
 
 				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams[2:]))
 			})
 
 			It("cannot flush first 2 teams", func() {
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(mockError).Times(1)
-				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil).Times(2)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, mockError).Times(1)
+				mockRepo.EXPECT().CreateTeams(gomock.Any(), gomock.Any()).Return(nil, nil).Times(2)
 
 				gomega.Expect(f.Flush(context.TODO(), teams)).Should(gomega.Equal(teams[:2]))
 			})

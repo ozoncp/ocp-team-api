@@ -5,13 +5,20 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-team-api/internal/api"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
 	desc "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	jaegerMetrics "github.com/uber/jaeger-lib/metrics"
+	"io"
+
 	"github.com/rs/zerolog/log"
+	"github.com/uber/jaeger-client-go"
+	jaegercfg "github.com/uber/jaeger-client-go/config"
+	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"net"
@@ -66,6 +73,35 @@ func createMetricsHttpHandler() *http.Server {
 	}
 }
 
+func createTracer() (opentracing.Tracer, io.Closer, error) {
+	cfg := jaegercfg.Configuration{
+		ServiceName: "ocp_team_api",
+		Sampler: &jaegercfg.SamplerConfig{
+			Type:  jaeger.SamplerTypeConst,
+			Param: 1,
+		},
+		Reporter: &jaegercfg.ReporterConfig{
+			LogSpans: true,
+		},
+	}
+
+	jLogger := jaegerlog.StdLogger
+	jMetricsFactory := jaegerMetrics.NullFactory
+
+	tracer, closer, err := cfg.NewTracer(
+		jaegercfg.Logger(jLogger),
+		jaegercfg.Metrics(jMetricsFactory),
+	)
+
+	opentracing.SetGlobalTracer(tracer)
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return tracer, closer, nil
+}
+
 func db() (*sqlx.DB, error) {
 	db, err := sqlx.Connect("pgx", dsn)
 
@@ -89,6 +125,12 @@ func main() {
 		log.Fatal().Msg(err.Error())
 	}
 	defer db.Close()
+
+	_, closer, err := createTracer()
+	if err != nil {
+		log.Fatal().Msg(err.Error())
+	}
+	defer closer.Close()
 
 	kafkaProducer, err := kafka.NewProducer()
 	if err != nil {

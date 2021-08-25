@@ -2,6 +2,8 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/models"
@@ -11,6 +13,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+)
+
+const (
+	batchSize = 2
 )
 
 type api struct {
@@ -30,6 +36,10 @@ func (a *api) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	log.Printf("Create team (name=%s, description=%s)", req.Name, req.Description)
+
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("CreateTeamV1")
+	defer span.Finish()
 
 	team := models.Team{Name: req.Name, Description: req.Description}
 
@@ -56,6 +66,10 @@ func (a *api) MultiCreateTeamV1(
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
 	log.Printf("Multi create team")
 
+	tracer := opentracing.GlobalTracer()
+	parentSpan := tracer.StartSpan("MultiCreateTeamV1")
+	defer parentSpan.Finish()
+
 	teams := make([]models.Team, 0, len(req.Teams))
 	for _, team := range req.Teams {
 		teams = append(teams, models.Team{
@@ -64,17 +78,22 @@ func (a *api) MultiCreateTeamV1(
 		})
 	}
 
-	batchSize := 2
 	batches := utils.SplitToBulks(teams, batchSize)
 
 	var teamsIds []uint64
 
-	for _, batch := range batches {
+	for i, batch := range batches {
 		ids, err := a.repo.CreateTeams(ctx, batch)
 
 		if err != nil {
 			return &desc.MultiCreateTeamV1Response{Ids: teamsIds}, status.Error(codes.Internal, err.Error())
 		}
+
+		childSpan := tracer.StartSpan(
+			fmt.Sprintf("batch_index=%d, batch_size=%d", i, len(batch)),
+			opentracing.ChildOf(parentSpan.Context()),
+		)
+		childSpan.Finish()
 
 		teamsIds = append(teamsIds, ids...)
 	}
@@ -88,6 +107,10 @@ func (a *api) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
 	log.Printf("Get team (id=%d)", req.Id)
+
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("GetTeamV1")
+	defer span.Finish()
 
 	team, err := a.repo.GetTeam(ctx, req.Id)
 
@@ -111,6 +134,10 @@ func (a *api) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
 	log.Printf("List teams (limit=%d, offset=%d)", req.Limit, req.Offset)
+
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("ListTeamsV1")
+	defer span.Finish()
 
 	teams, err := a.repo.ListTeams(ctx, req.Limit, req.Offset)
 
@@ -136,6 +163,10 @@ func (a *api) RemoveTeamV1(
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
 	log.Printf("Remove team (id=%d)", req.Id)
 
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("RemoveTeamV1")
+	defer span.Finish()
+
 	err := a.repo.RemoveTeam(ctx, req.Id)
 	if err != nil {
 		log.Info().Err(err)
@@ -155,6 +186,10 @@ func (a *api) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
 	log.Printf("Update team (id=%d)", req.Team.Id)
+
+	tracer := opentracing.GlobalTracer()
+	span := tracer.StartSpan("UpdateTeamV1")
+	defer span.Finish()
 
 	team := models.Team{
 		Id:          req.Team.Id,

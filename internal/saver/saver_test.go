@@ -12,9 +12,9 @@ import (
 
 var _ = Describe("Saver", func() {
 	var (
-		ctrl	*gomock.Controller
+		ctrl        *gomock.Controller
 		mockFlusher *mocks.MockFlusher
-		s saver.Saver
+		s           saver.Saver
 	)
 
 	BeforeEach(func() {
@@ -44,7 +44,7 @@ var _ = Describe("Saver", func() {
 		It("returns nil on saver creation", func() {
 			mockFlusher.EXPECT().Flush(gomock.Any(), gomock.Any()).Times(0)
 
-			s = saver.NewSaver(1, mockFlusher, -1 * time.Second)
+			s = saver.NewSaver(1, mockFlusher, -1*time.Second)
 
 			gomega.Expect(s).Should(gomega.BeNil())
 
@@ -57,7 +57,7 @@ var _ = Describe("Saver", func() {
 	Context("when saver's capacity overloaded", func() {
 		It("flushes elements", func() {
 			mockFlusher.EXPECT().Flush(gomock.Any(), gomock.Any()).Return([]models.Team{}).AnyTimes()
-			s = saver.NewSaver(1, mockFlusher, 10 * time.Second)
+			s = saver.NewSaver(1, mockFlusher, 10*time.Second)
 
 			for i := 0; i < 5; i++ {
 				_ = s.Save(models.Team{Id: uint64(i), Name: "Name", Description: "Desc"})
@@ -71,10 +71,10 @@ var _ = Describe("Saver", func() {
 		It("does not panic", func() {
 			mockFlusher.EXPECT().Flush(gomock.Any(), gomock.Any()).Return(nil).Times(1)
 
-			s = saver.NewSaver(10, mockFlusher, 10 * time.Second)
+			s = saver.NewSaver(10, mockFlusher, 10*time.Second)
 
 			s.Close()
-			gomega.Expect(func(){
+			gomega.Expect(func() {
 				s.Close()
 			}).ShouldNot(gomega.Panic())
 		})
@@ -84,7 +84,7 @@ var _ = Describe("Saver", func() {
 		It("returns error", func() {
 			mockFlusher.EXPECT().Flush(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-			s = saver.NewSaver(10, mockFlusher, 10 * time.Second)
+			s = saver.NewSaver(10, mockFlusher, 10*time.Second)
 
 			s.Close()
 			err := s.Save(models.Team{Id: 0, Name: "Name", Description: "Desc"})
