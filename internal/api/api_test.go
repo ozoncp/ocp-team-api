@@ -18,15 +18,17 @@ var _ = Describe("Api", func() {
 	var (
 		ctrl *gomock.Controller
 
-		s        desc.OcpTeamApiServer
-		mockRepo *mocks.MockRepo
+		s                 desc.OcpTeamApiServer
+		mockRepo          *mocks.MockRepo
+		mockKafkaProducer *mocks.MockProducer
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
 		mockRepo = mocks.NewMockRepo(ctrl)
-		s = api.NewOcpTeamApi(mockRepo)
+		mockKafkaProducer = mocks.NewMockProducer(ctrl)
+		s = api.NewOcpTeamApi(mockRepo, mockKafkaProducer)
 	})
 
 	AfterEach(func() {
@@ -35,7 +37,8 @@ var _ = Describe("Api", func() {
 
 	Context("CreateTeamV1()", func() {
 		It("returns response", func() {
-			mockRepo.EXPECT().CreateTeam(gomock.Any(), gomock.Any()).Return(nil)
+			mockRepo.EXPECT().CreateTeam(gomock.Any(), gomock.Any()).Return(nil).Times(1)
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil)
 
 			req := &desc.CreateTeamV1Request{Name: "Name", Description: "Description"}
 
@@ -46,6 +49,8 @@ var _ = Describe("Api", func() {
 
 	Context("GetTeamV1()", func() {
 		It("get existing team by id", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
+
 			expectedResponse := &desc.GetTeamV1Response{Team: &desc.Team{
 				Id:          uint64(1),
 				Name:        "Name",
@@ -69,6 +74,8 @@ var _ = Describe("Api", func() {
 		})
 
 		It("get non-existing team by id", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
+
 			mockRepo.EXPECT().GetTeam(gomock.Any(), gomock.Any()).Return(
 				nil, status.Error(codes.NotFound, ""))
 
@@ -82,6 +89,8 @@ var _ = Describe("Api", func() {
 
 	Context("RemoveTeamV1()", func() {
 		It("removes existing element", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(1)
+
 			mockRepo.EXPECT().RemoveTeam(gomock.Any(), gomock.Any()).Return(nil)
 
 			req := &desc.RemoveTeamV1Request{Id: uint64(1)}
@@ -93,8 +102,25 @@ var _ = Describe("Api", func() {
 		})
 	})
 
+	Context("UpdateTeamV1()", func() {
+		It("updates existing element", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(1)
+
+			mockRepo.EXPECT().UpdateTeam(gomock.Any(), gomock.Any()).Return(nil)
+
+			req := &desc.UpdateTeamV1Request{Team: &desc.Team{Id: uint64(1), Name: "Name1", Description: "Descr1"}}
+			expectedResponse := &desc.UpdateTeamV1Response{}
+
+			actualResponse, err := s.UpdateTeamV1(context.Background(), req)
+			Expect(err).Should(BeNil())
+			Expect(actualResponse).Should(Equal(expectedResponse))
+		})
+	})
+
 	Context("ListTeamsV1()", func() {
 		It("return nothing when limit and offset are default", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
+
 			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Team{}, nil)
 
 			req := &desc.ListTeamsV1Request{}
@@ -109,6 +135,8 @@ var _ = Describe("Api", func() {
 
 	Context("ListTeamsV1()", func() {
 		It("return nothing when limit and offset are default", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
+
 			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Team{}, nil)
 
 			req := &desc.ListTeamsV1Request{}
@@ -121,6 +149,8 @@ var _ = Describe("Api", func() {
 		})
 
 		It("return teams when limit and offset are set", func() {
+			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
+
 			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return(
 				[]models.Team{
 					{Id: uint64(1), Name: "Name", Description: "Description"},

@@ -32,7 +32,7 @@ func (f *flusher) Flush(ctx context.Context, teams []models.Team) []models.Team 
 	failed := make([]models.Team, 0)
 
 	for _, chunk := range batches {
-		if err := f.teamRepo.CreateTeams(ctx, chunk); err != nil {
+		if _, err := f.teamRepo.CreateTeams(ctx, chunk); err != nil {
 			failed = append(failed, chunk...)
 		}
 	}

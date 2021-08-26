@@ -77,6 +77,68 @@
         "tags": [
           "OcpTeamApi"
         ]
+      },
+      "put": {
+        "operationId": "OcpTeamApi_UpdateTeamV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiUpdateTeamV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiUpdateTeamV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpTeamApi"
+        ]
+      }
+    },
+    "/v1/teams/collection": {
+      "post": {
+        "operationId": "OcpTeamApi_MultiCreateTeamV1",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateTeamV1Response"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/runtimeError"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiMultiCreateTeamV1Request"
+            }
+          }
+        ],
+        "tags": [
+          "OcpTeamApi"
+        ]
       }
     },
     "/v1/teams/{id}": {
@@ -180,6 +242,29 @@
         }
       }
     },
+    "apiMultiCreateTeamV1Request": {
+      "type": "object",
+      "properties": {
+        "teams": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/apiCreateTeamV1Request"
+          }
+        }
+      }
+    },
+    "apiMultiCreateTeamV1Response": {
+      "type": "object",
+      "properties": {
+        "ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uint64"
+          }
+        }
+      }
+    },
     "apiRemoveTeamV1Response": {
       "type": "object"
     },
@@ -197,6 +282,17 @@
           "type": "string"
         }
       }
+    },
+    "apiUpdateTeamV1Request": {
+      "type": "object",
+      "properties": {
+        "team": {
+          "$ref": "#/definitions/apiTeam"
+        }
+      }
+    },
+    "apiUpdateTeamV1Response": {
+      "type": "object"
     },
     "protobufAny": {
       "type": "object",

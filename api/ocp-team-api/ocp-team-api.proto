@@ -15,6 +15,13 @@ service OcpTeamApi {
         };
     }
 
+    rpc MultiCreateTeamV1(MultiCreateTeamV1Request) returns (MultiCreateTeamV1Response) {
+        option (google.api.http) = {
+            post: "/v1/teams/collection",
+            body: "*"
+        };
+    }
+
     rpc GetTeamV1(GetTeamV1Request) returns (GetTeamV1Response) {
         option (google.api.http) = {
             get: "/v1/teams/{id}"
@@ -32,6 +39,13 @@ service OcpTeamApi {
             delete: "/v1/teams/{id}"
         };
     }
+
+    rpc UpdateTeamV1(UpdateTeamV1Request) returns (UpdateTeamV1Response) {
+        option (google.api.http) = {
+            put: "/v1/teams",
+            body: "*"
+        };
+    }
 }
 
 message CreateTeamV1Request {
@@ -41,6 +55,14 @@ message CreateTeamV1Request {
 
 message CreateTeamV1Response {
     uint64 id = 1;
+}
+
+message MultiCreateTeamV1Request {
+    repeated CreateTeamV1Request teams = 1;
+}
+
+message MultiCreateTeamV1Response {
+    repeated uint64 ids = 1;
 }
 
 message GetTeamV1Request {
@@ -65,6 +87,12 @@ message RemoveTeamV1Request {
 }
 
 message RemoveTeamV1Response {}
+
+message UpdateTeamV1Request {
+    Team team = 1;
+}
+
+message UpdateTeamV1Response {}
 
 message Team {
     uint64 id = 1;

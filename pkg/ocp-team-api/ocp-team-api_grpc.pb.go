@@ -19,9 +19,11 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type OcpTeamApiClient interface {
 	CreateTeamV1(ctx context.Context, in *CreateTeamV1Request, opts ...grpc.CallOption) (*CreateTeamV1Response, error)
+	MultiCreateTeamV1(ctx context.Context, in *MultiCreateTeamV1Request, opts ...grpc.CallOption) (*MultiCreateTeamV1Response, error)
 	GetTeamV1(ctx context.Context, in *GetTeamV1Request, opts ...grpc.CallOption) (*GetTeamV1Response, error)
 	ListTeamsV1(ctx context.Context, in *ListTeamsV1Request, opts ...grpc.CallOption) (*ListTeamsV1Response, error)
 	RemoveTeamV1(ctx context.Context, in *RemoveTeamV1Request, opts ...grpc.CallOption) (*RemoveTeamV1Response, error)
+	UpdateTeamV1(ctx context.Context, in *UpdateTeamV1Request, opts ...grpc.CallOption) (*UpdateTeamV1Response, error)
 }
 
 type ocpTeamApiClient struct {
@@ -35,6 +37,15 @@ func NewOcpTeamApiClient(cc grpc.ClientConnInterface) OcpTeamApiClient {
 func (c *ocpTeamApiClient) CreateTeamV1(ctx context.Context, in *CreateTeamV1Request, opts ...grpc.CallOption) (*CreateTeamV1Response, error) {
 	out := new(CreateTeamV1Response)
 	err := c.cc.Invoke(ctx, "/ocp.team.api.OcpTeamApi/CreateTeamV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *ocpTeamApiClient) MultiCreateTeamV1(ctx context.Context, in *MultiCreateTeamV1Request, opts ...grpc.CallOption) (*MultiCreateTeamV1Response, error) {
+	out := new(MultiCreateTeamV1Response)
+	err := c.cc.Invoke(ctx, "/ocp.team.api.OcpTeamApi/MultiCreateTeamV1", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -68,14 +79,25 @@ func (c *ocpTeamApiClient) RemoveTeamV1(ctx context.Context, in *RemoveTeamV1Req
 	return out, nil
 }
 
+func (c *ocpTeamApiClient) UpdateTeamV1(ctx context.Context, in *UpdateTeamV1Request, opts ...grpc.CallOption) (*UpdateTeamV1Response, error) {
+	out := new(UpdateTeamV1Response)
+	err := c.cc.Invoke(ctx, "/ocp.team.api.OcpTeamApi/UpdateTeamV1", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // OcpTeamApiServer is the server API for OcpTeamApi service.
 // All implementations must embed UnimplementedOcpTeamApiServer
 // for forward compatibility
 type OcpTeamApiServer interface {
 	CreateTeamV1(context.Context, *CreateTeamV1Request) (*CreateTeamV1Response, error)
+	MultiCreateTeamV1(context.Context, *MultiCreateTeamV1Request) (*MultiCreateTeamV1Response, error)
 	GetTeamV1(context.Context, *GetTeamV1Request) (*GetTeamV1Response, error)
 	ListTeamsV1(context.Context, *ListTeamsV1Request) (*ListTeamsV1Response, error)
 	RemoveTeamV1(context.Context, *RemoveTeamV1Request) (*RemoveTeamV1Response, error)
+	UpdateTeamV1(context.Context, *UpdateTeamV1Request) (*UpdateTeamV1Response, error)
 	mustEmbedUnimplementedOcpTeamApiServer()
 }
 
@@ -86,6 +108,9 @@ type UnimplementedOcpTeamApiServer struct {
 func (UnimplementedOcpTeamApiServer) CreateTeamV1(context.Context, *CreateTeamV1Request) (*CreateTeamV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTeamV1 not implemented")
 }
+func (UnimplementedOcpTeamApiServer) MultiCreateTeamV1(context.Context, *MultiCreateTeamV1Request) (*MultiCreateTeamV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MultiCreateTeamV1 not implemented")
+}
 func (UnimplementedOcpTeamApiServer) GetTeamV1(context.Context, *GetTeamV1Request) (*GetTeamV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTeamV1 not implemented")
 }
@@ -94,6 +119,9 @@ func (UnimplementedOcpTeamApiServer) ListTeamsV1(context.Context, *ListTeamsV1Re
 }
 func (UnimplementedOcpTeamApiServer) RemoveTeamV1(context.Context, *RemoveTeamV1Request) (*RemoveTeamV1Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemoveTeamV1 not implemented")
+}
+func (UnimplementedOcpTeamApiServer) UpdateTeamV1(context.Context, *UpdateTeamV1Request) (*UpdateTeamV1Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateTeamV1 not implemented")
 }
 func (UnimplementedOcpTeamApiServer) mustEmbedUnimplementedOcpTeamApiServer() {}
 
@@ -122,6 +150,24 @@ func _OcpTeamApi_CreateTeamV1_Handler(srv interface{}, ctx context.Context, dec 
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(OcpTeamApiServer).CreateTeamV1(ctx, req.(*CreateTeamV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _OcpTeamApi_MultiCreateTeamV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MultiCreateTeamV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OcpTeamApiServer).MultiCreateTeamV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ocp.team.api.OcpTeamApi/MultiCreateTeamV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OcpTeamApiServer).MultiCreateTeamV1(ctx, req.(*MultiCreateTeamV1Request))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -180,6 +226,24 @@ func _OcpTeamApi_RemoveTeamV1_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _OcpTeamApi_UpdateTeamV1_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateTeamV1Request)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OcpTeamApiServer).UpdateTeamV1(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/ocp.team.api.OcpTeamApi/UpdateTeamV1",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OcpTeamApiServer).UpdateTeamV1(ctx, req.(*UpdateTeamV1Request))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // OcpTeamApi_ServiceDesc is the grpc.ServiceDesc for OcpTeamApi service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,6 +256,10 @@ var OcpTeamApi_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _OcpTeamApi_CreateTeamV1_Handler,
 		},
 		{
+			MethodName: "MultiCreateTeamV1",
+			Handler:    _OcpTeamApi_MultiCreateTeamV1_Handler,
+		},
+		{
 			MethodName: "GetTeamV1",
 			Handler:    _OcpTeamApi_GetTeamV1_Handler,
 		},
@@ -202,6 +270,10 @@ var OcpTeamApi_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveTeamV1",
 			Handler:    _OcpTeamApi_RemoveTeamV1_Handler,
+		},
+		{
+			MethodName: "UpdateTeamV1",
+			Handler:    _OcpTeamApi_UpdateTeamV1_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

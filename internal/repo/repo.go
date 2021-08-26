@@ -13,10 +13,11 @@ const (
 
 type Repo interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
-	CreateTeams(ctx context.Context, teams []models.Team) error
+	CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error)
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, error)
 	RemoveTeam(ctx context.Context, teamId uint64) error
+	UpdateTeam(ctx context.Context, team models.Team) error
 }
 
 func NewRepo(db *sqlx.DB) Repo {
@@ -40,9 +41,10 @@ func (r *repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	return err
 }
 
-func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) error {
+func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
+		Suffix("RETURNING id").
 		RunWith(r.db).
 		PlaceholderFormat(sq.Dollar)
 
@@ -50,8 +52,24 @@ func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) error {
 		query = query.Values(team.Name, team.Description)
 	}
 
-	_, err := query.ExecContext(ctx)
-	return err
+	rows, err := query.QueryContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := make([]uint64, 0, len(teams))
+	for rows.Next() {
+		var id uint64
+
+		err = rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+
+		ids = append(ids, id)
+	}
+
+	return ids, nil
 }
 
 func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
@@ -102,5 +120,18 @@ func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 		PlaceholderFormat(sq.Dollar)
 
 	_, err := query.ExecContext(ctx)
+	return err
+}
+
+func (r *repo) UpdateTeam(ctx context.Context, team models.Team) error {
+	query := sq.Update(tableName).
+		Set("name", team.Name).
+		Set("description", team.Description).
+		Where(sq.Eq{"id": team.Id}).
+		RunWith(r.db).
+		PlaceholderFormat(sq.Dollar)
+
+	_, err := query.ExecContext(ctx)
+
 	return err
 }
