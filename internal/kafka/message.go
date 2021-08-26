@@ -8,8 +8,18 @@ const (
 	Delete
 )
 
+var eventMapper = map[Event]string{
+	Create: "Create",
+	Update: "Update",
+	Delete: "Delete",
+}
+
 func (e Event) String() string {
-	return [...]string{"Create", "Update", "Delete"}[e-1]
+	if value, ok := eventMapper[e]; ok {
+		return value
+	}
+
+	return "Unknown"
 }
 
 func NewMessage(Id uint64, Event Event) Message {
