@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jaegerMetrics "github.com/uber/jaeger-lib/metrics"
 	"io"
+	"sync/atomic"
 
 	"github.com/rs/zerolog/log"
 	"github.com/uber/jaeger-client-go"
@@ -34,6 +35,7 @@ const (
 	grpcServerEndpoint = "localhost:8082"
 	httpPort           = ":8080"
 	prometheusPort     = ":9100"
+	statusPort         = ":9191"
 
 	dsn = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
 
@@ -60,6 +62,42 @@ func createHttpGateway(ctx context.Context) *http.Server {
 	return &http.Server{
 		Addr:    httpPort,
 		Handler: mux,
+	}
+}
+
+func createStatusServer() *http.Server {
+	isReady := &atomic.Value{}
+	isReady.Store(false)
+
+	go func() {
+		log.Printf("Ready probe is negative by default...")
+		time.Sleep(10 * time.Second)
+		isReady.Store(true)
+		log.Printf("Ready probe is positive.")
+	}()
+
+	mux := http.DefaultServeMux
+
+	mux.HandleFunc("/health", health)
+	mux.HandleFunc("/ready", ready(isReady))
+
+	return &http.Server{
+		Addr:    statusPort,
+		Handler: mux,
+	}
+}
+
+func health(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func ready(isReady *atomic.Value) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		if isReady == nil || !isReady.Load().(bool) {
+			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
 	}
 }
 
@@ -140,6 +178,7 @@ func main() {
 	grpcServer := createGrpcServer(db, kafkaProducer)
 	httpGateway := createHttpGateway(ctx)
 	metricsHttpHandler := createMetricsHttpHandler()
+	statusServer := createStatusServer()
 
 	g.Go(func() error {
 		listen, err := net.Listen("tcp", grpcPort)
@@ -159,6 +198,10 @@ func main() {
 		metrics.Register()
 		return metricsHttpHandler.ListenAndServe()
 	})
+	g.Go(func() error {
+		log.Info().Msgf("status server started on port %s", statusServer)
+		return statusServer.ListenAndServe()
+	})
 
 	select {
 	case <-interrupt:
@@ -173,6 +216,12 @@ func main() {
 
 	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), shutdownTimeout)
 	defer shutdownCtxCancel()
+
+	log.Info().Msg("shutdown status server")
+	err = statusServer.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Debug().Msgf("http status server shutdown failed %v", err)
+	}
 
 	log.Info().Msg("shutdown http gateway")
 	err = httpGateway.Shutdown(shutdownCtx)
