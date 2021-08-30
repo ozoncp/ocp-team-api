@@ -236,3 +236,38 @@ func (a *api) UpdateTeamV1(
 
 	return &desc.UpdateTeamV1Response{}, nil
 }
+
+func (a *api) SearchTeamsV1(
+	ctx context.Context,
+	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {
+	log.Printf("Search request")
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	var searchType uint8
+	switch req.Type {
+	case desc.SearchTeamV1Request_PLAIN:
+		searchType = uint8(0)
+	case desc.SearchTeamV1Request_PHRASE:
+		searchType = uint8(1)
+	}
+
+	teams, err := a.repo.SearchTeams(ctx, req.Query, searchType)
+	if err != nil {
+		log.Info().Err(err)
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	responseTeams := make([]*desc.Team, 0, len(teams))
+	for _, team := range teams {
+		responseTeams = append(responseTeams, &desc.Team{
+			Id:          team.Id,
+			Name:        team.Name,
+			Description: team.Description,
+		})
+	}
+
+	return &desc.SearchTeamV1Response{Teams: responseTeams}, nil
+}

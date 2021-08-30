@@ -47,11 +47,18 @@ service OcpTeamApi {
             body: "*"
         };
     }
+
+    rpc SearchTeamsV1(SearchTeamV1Request) returns (SearchTeamV1Response) {
+        option (google.api.http) = {
+            post: "/v1/teams/search",
+            body: "*"
+        };
+    }
 }
 
 message CreateTeamV1Request {
     string name = 1 [(validate.rules).string = {min_len: 3, max_len: 100}];
-    string description = 2 [(validate.rules).string = {max_len: 255}];
+    string description = 2 [(validate.rules).string = {max_len: 10000}];
 }
 
 message CreateTeamV1Response {
@@ -80,7 +87,8 @@ message ListTeamsV1Request {
 }
 
 message ListTeamsV1Response {
-    repeated Team teams = 1;
+    uint64 total = 1;
+    repeated Team teams = 2;
 }
 
 message RemoveTeamV1Request {
@@ -95,8 +103,21 @@ message UpdateTeamV1Request {
 
 message UpdateTeamV1Response {}
 
+message SearchTeamV1Request {
+    enum Type {
+        PLAIN = 0;
+        PHRASE = 1;
+    }
+    Type type = 1 [(validate.rules).enum.defined_only = true];
+    string query = 2;
+}
+
+message SearchTeamV1Response {
+    repeated Team teams = 2;
+}
+
 message Team {
     uint64 id = 1 [(validate.rules).uint64.gt = 0];
     string name = 2 [(validate.rules).string = {min_len: 3, max_len: 100}];
-    string description = 3 [(validate.rules).string = {max_len: 255}];
+    string description = 3 [(validate.rules).string = {max_len: 10000}];
 }

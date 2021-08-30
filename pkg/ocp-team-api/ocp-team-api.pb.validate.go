@@ -48,10 +48,10 @@ func (m *CreateTeamV1Request) Validate() error {
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetDescription()) > 255 {
+	if utf8.RuneCountInString(m.GetDescription()) > 10000 {
 		return CreateTeamV1RequestValidationError{
 			field:  "Description",
-			reason: "value length must be at most 255 runes",
+			reason: "value length must be at most 10000 runes",
 		}
 	}
 
@@ -933,6 +933,164 @@ var _ interface {
 	ErrorName() string
 } = UpdateTeamV1ResponseValidationError{}
 
+// Validate checks the field values on SearchTeamV1Request with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *SearchTeamV1Request) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	if _, ok := SearchTeamV1Request_Type_name[int32(m.GetType())]; !ok {
+		return SearchTeamV1RequestValidationError{
+			field:  "Type",
+			reason: "value must be one of the defined enum values",
+		}
+	}
+
+	// no validation rules for Query
+
+	return nil
+}
+
+// SearchTeamV1RequestValidationError is the validation error returned by
+// SearchTeamV1Request.Validate if the designated constraints aren't met.
+type SearchTeamV1RequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchTeamV1RequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchTeamV1RequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchTeamV1RequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchTeamV1RequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchTeamV1RequestValidationError) ErrorName() string {
+	return "SearchTeamV1RequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchTeamV1RequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchTeamV1Request.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchTeamV1RequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchTeamV1RequestValidationError{}
+
+// Validate checks the field values on SearchTeamV1Response with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, an error is returned.
+func (m *SearchTeamV1Response) Validate() error {
+	if m == nil {
+		return nil
+	}
+
+	for idx, item := range m.GetTeams() {
+		_, _ = idx, item
+
+		if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return SearchTeamV1ResponseValidationError{
+					field:  fmt.Sprintf("Teams[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	return nil
+}
+
+// SearchTeamV1ResponseValidationError is the validation error returned by
+// SearchTeamV1Response.Validate if the designated constraints aren't met.
+type SearchTeamV1ResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e SearchTeamV1ResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e SearchTeamV1ResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e SearchTeamV1ResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e SearchTeamV1ResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e SearchTeamV1ResponseValidationError) ErrorName() string {
+	return "SearchTeamV1ResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e SearchTeamV1ResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sSearchTeamV1Response.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = SearchTeamV1ResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = SearchTeamV1ResponseValidationError{}
+
 // Validate checks the field values on Team with the rules defined in the proto
 // definition for this message. If any rules are violated, an error is returned.
 func (m *Team) Validate() error {
@@ -954,10 +1112,10 @@ func (m *Team) Validate() error {
 		}
 	}
 
-	if utf8.RuneCountInString(m.GetDescription()) > 255 {
+	if utf8.RuneCountInString(m.GetDescription()) > 10000 {
 		return TeamValidationError{
 			field:  "Description",
-			reason: "value length must be at most 255 runes",
+			reason: "value length must be at most 10000 runes",
 		}
 	}
 

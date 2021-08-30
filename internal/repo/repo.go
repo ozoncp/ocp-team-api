@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"database/sql"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-team-api/internal/models"
@@ -18,6 +19,7 @@ type Repo interface {
 	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error)
 	RemoveTeam(ctx context.Context, teamId uint64) error
 	UpdateTeam(ctx context.Context, team models.Team) error
+	SearchTeams(ctx context.Context, query string, searchType uint8) ([]models.Team, error)
 }
 
 func NewRepo(db *sqlx.DB) Repo {
@@ -73,7 +75,7 @@ func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, 
 }
 
 func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
-	query := sq.Select("*").
+	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.And{
 			sq.Eq{"id": teamId},
@@ -83,7 +85,7 @@ func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 		PlaceholderFormat(sq.Dollar)
 
 	var team models.Team
-	if err := query.QueryRowContext(ctx).Scan(&team.Id, &team.Name, &team.Description, &team.IsDeleted); err != nil {
+	if err := query.QueryRowContext(ctx).Scan(&team.Id, &team.Name, &team.Description); err != nil {
 		return nil, err
 	}
 
@@ -91,7 +93,7 @@ func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 }
 
 func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
-	query := sq.Select("*").
+	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.Eq{"is_deleted": false}).
 		RunWith(r.db).
@@ -108,7 +110,7 @@ func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 	var teams []models.Team
 	for rows.Next() {
 		var team models.Team
-		if err := rows.Scan(&team.Id, &team.Name, &team.Description, &team.IsDeleted); err != nil {
+		if err := rows.Scan(&team.Id, &team.Name, &team.Description); err != nil {
 			return nil, 0, err
 		}
 
@@ -151,4 +153,36 @@ func (r *repo) UpdateTeam(ctx context.Context, team models.Team) error {
 	_, err := query.ExecContext(ctx)
 
 	return err
+}
+
+func (r *repo) SearchTeams(ctx context.Context, query string, searchType uint8) ([]models.Team, error) {
+	plainTextQuery := `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
+			plainto_tsquery($1) AS q WHERE is_deleted = FALSE AND tsv @@ q ORDER BY ts_rank(tsv, q) DESC`
+
+	phraseTextQuery := `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
+			phraseto_tsquery($1) AS q WHERE is_deleted = FALSE AND tsv @@ q ORDER BY ts_rank(tsv, q) DESC`
+
+	var rows *sql.Rows
+	var err error
+	if searchType == uint8(0) {
+		rows, err = r.db.QueryContext(ctx, plainTextQuery, query)
+	} else {
+		rows, err = r.db.QueryContext(ctx, phraseTextQuery, query)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var teams []models.Team
+	for rows.Next() {
+		var team models.Team
+		if err = rows.Scan(&team.Id, &team.Name, &team.Description); err != nil {
+			return nil, err
+		}
+		teams = append(teams, team)
+	}
+
+	return teams, nil
 }

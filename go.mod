@@ -3,6 +3,7 @@ module github.com/ozoncp/ocp-team-api
 go 1.16
 
 require (
+	github.com/ClickHouse/clickhouse-go v1.4.7 // indirect
 	github.com/DATA-DOG/go-sqlmock v1.5.0 // indirect
 	github.com/DataDog/zstd v1.3.6-0.20190409195224-796139022798 // indirect
 	github.com/Masterminds/squirrel v1.5.0 // indirect
