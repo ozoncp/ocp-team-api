@@ -155,7 +155,7 @@ func (a *api) ListTeamsV1(
 	span := tracer.StartSpan("ListTeamsV1")
 	defer span.Finish()
 
-	teams, err := a.repo.ListTeams(ctx, req.Limit, req.Offset)
+	teams, total, err := a.repo.ListTeams(ctx, req.Limit, req.Offset)
 
 	if err != nil {
 		log.Info().Err(err)
@@ -171,7 +171,7 @@ func (a *api) ListTeamsV1(
 		})
 	}
 
-	return &desc.ListTeamsV1Response{Teams: responseTeams}, nil
+	return &desc.ListTeamsV1Response{Total: total, Teams: responseTeams}, nil
 }
 
 func (a *api) RemoveTeamV1(

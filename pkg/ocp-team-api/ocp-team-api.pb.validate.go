@@ -572,6 +572,8 @@ func (m *ListTeamsV1Response) Validate() error {
 		return nil
 	}
 
+	// no validation rules for Total
+
 	for idx, item := range m.GetTeams() {
 		_, _ = idx, item
 

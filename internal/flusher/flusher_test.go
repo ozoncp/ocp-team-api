@@ -24,11 +24,11 @@ var _ = Describe("Flusher", func() {
 
 	emptyTeams := make([]models.Team, 0)
 	nonEmptyTeams := []models.Team{
-		{1, "Team1", "Desc1"},
-		{2, "Team2", "Desc2"},
-		{3, "Team3", "Desc3"},
-		{4, "Team4", "Desc4"},
-		{5, "Team5", "Desc5"},
+		{1, "Team1", "Desc1", false},
+		{2, "Team2", "Desc2", false},
+		{3, "Team3", "Desc3", false},
+		{4, "Team4", "Desc4", false},
+		{5, "Team5", "Desc5", false},
 	}
 
 	BeforeEach(func() {

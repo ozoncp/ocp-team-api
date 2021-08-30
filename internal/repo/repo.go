@@ -15,7 +15,7 @@ type Repo interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
 	CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error)
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
-	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, error)
+	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error)
 	RemoveTeam(ctx context.Context, teamId uint64) error
 	UpdateTeam(ctx context.Context, team models.Team) error
 }
@@ -90,31 +90,43 @@ func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	return &team, nil
 }
 
-func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, error) {
+func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
 	query := sq.Select("*").
 		From(tableName).
 		Where(sq.Eq{"is_deleted": false}).
 		RunWith(r.db).
+		OrderBy("id").
 		Limit(limit).
 		Offset(offset).
 		PlaceholderFormat(sq.Dollar)
 
 	rows, err := query.QueryContext(ctx)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	var teams []models.Team
 	for rows.Next() {
 		var team models.Team
 		if err := rows.Scan(&team.Id, &team.Name, &team.Description, &team.IsDeleted); err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 
 		teams = append(teams, team)
 	}
 
-	return teams, nil
+	var total uint64
+	query = sq.Select("COUNT(*)").
+		From(tableName).
+		Where(sq.Eq{"is_deleted": false}).
+		RunWith(r.db).
+		PlaceholderFormat(sq.Dollar)
+	err = query.QueryRowContext(ctx).Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return teams, total, nil
 }
 
 func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
