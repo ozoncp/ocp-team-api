@@ -35,8 +35,10 @@ func NewOcpTeamApi(repo repo.Repo, producer kafka.Producer) desc.OcpTeamApiServe
 func (a *api) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Create team (name=%s, description=%s)", req.Name, req.Description)
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -68,8 +70,10 @@ func (a *api) CreateTeamV1(
 func (a *api) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Multi create team")
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -114,8 +118,10 @@ func (a *api) MultiCreateTeamV1(
 func (a *api) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Get team (id=%d)", req.Id)
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -145,8 +151,10 @@ func (a *api) GetTeamV1(
 func (a *api) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("List teams (limit=%d, offset=%d)", req.Limit, req.Offset)
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -177,8 +185,10 @@ func (a *api) ListTeamsV1(
 func (a *api) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Remove team (id=%d)", req.Id)
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -205,8 +215,10 @@ func (a *api) RemoveTeamV1(
 func (a *api) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Update team (id=%d)", req.Team.Id)
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -240,8 +252,10 @@ func (a *api) UpdateTeamV1(
 func (a *api) SearchTeamsV1(
 	ctx context.Context,
 	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {
+	metrics.IncTotalRequestsCounter()
 	log.Printf("Search request")
 	if err := req.Validate(); err != nil {
+		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
