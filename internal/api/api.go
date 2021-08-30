@@ -36,6 +36,10 @@ func (a *api) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	log.Printf("Create team (name=%s, description=%s)", req.Name, req.Description)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("CreateTeamV1")
@@ -65,6 +69,10 @@ func (a *api) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
 	log.Printf("Multi create team")
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	parentSpan := tracer.StartSpan("MultiCreateTeamV1")
@@ -107,6 +115,10 @@ func (a *api) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
 	log.Printf("Get team (id=%d)", req.Id)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("GetTeamV1")
@@ -134,6 +146,10 @@ func (a *api) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
 	log.Printf("List teams (limit=%d, offset=%d)", req.Limit, req.Offset)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("ListTeamsV1")
@@ -162,6 +178,10 @@ func (a *api) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
 	log.Printf("Remove team (id=%d)", req.Id)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("RemoveTeamV1")
@@ -186,6 +206,10 @@ func (a *api) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
 	log.Printf("Update team (id=%d)", req.Team.Id)
+	if err := req.Validate(); err != nil {
+		log.Error().Err(err).Msg("invalid argument")
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("UpdateTeamV1")

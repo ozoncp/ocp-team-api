@@ -1,13 +1,14 @@
 syntax = "proto3";
 
 import "google/api/annotations.proto";
+import "github.com/envoyproxy/protoc-gen-validate/validate/validate.proto";
 
 package ocp.team.api;
 
 option go_package = "github.com/ozoncp/ocp-team-api/pkg/ocp-team-api;ocp_team_api";
 
 service OcpTeamApi {
-    
+
     rpc CreateTeamV1(CreateTeamV1Request) returns (CreateTeamV1Response) {
         option (google.api.http) = {
             post: "/v1/teams",
@@ -49,8 +50,8 @@ service OcpTeamApi {
 }
 
 message CreateTeamV1Request {
-    string name = 1;
-    string description = 2;
+    string name = 1 [(validate.rules).string = {min_len: 3, max_len: 100}];
+    string description = 2 [(validate.rules).string = {max_len: 255}];
 }
 
 message CreateTeamV1Response {
@@ -58,7 +59,7 @@ message CreateTeamV1Response {
 }
 
 message MultiCreateTeamV1Request {
-    repeated CreateTeamV1Request teams = 1;
+    repeated CreateTeamV1Request teams = 1 [(validate.rules).repeated = {min_items: 2}];
 }
 
 message MultiCreateTeamV1Response {
@@ -66,7 +67,7 @@ message MultiCreateTeamV1Response {
 }
 
 message GetTeamV1Request {
-    uint64 id = 1;
+    uint64 id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message GetTeamV1Response {
@@ -74,7 +75,7 @@ message GetTeamV1Response {
 }
 
 message ListTeamsV1Request {
-    uint64 limit = 1;
+    uint64 limit = 1 [(validate.rules).uint64 = {gt: 0, lte: 100}];
     uint64 offset = 2;
 }
 
@@ -83,7 +84,7 @@ message ListTeamsV1Response {
 }
 
 message RemoveTeamV1Request {
-    uint64 id = 1;
+    uint64 id = 1 [(validate.rules).uint64.gt = 0];
 }
 
 message RemoveTeamV1Response {}
@@ -95,7 +96,7 @@ message UpdateTeamV1Request {
 message UpdateTeamV1Response {}
 
 message Team {
-    uint64 id = 1;
-    string name = 2;
-    string description = 3;
+    uint64 id = 1 [(validate.rules).uint64.gt = 0];
+    string name = 2 [(validate.rules).string = {min_len: 3, max_len: 100}];
+    string description = 3 [(validate.rules).string = {max_len: 255}];
 }
