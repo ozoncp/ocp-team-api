@@ -75,12 +75,15 @@ func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, 
 func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
 	query := sq.Select("*").
 		From(tableName).
-		Where(sq.Eq{"id": teamId}).
+		Where(sq.And{
+			sq.Eq{"id": teamId},
+			sq.Eq{"is_deleted": false},
+		}).
 		RunWith(r.db).
 		PlaceholderFormat(sq.Dollar)
 
 	var team models.Team
-	if err := query.QueryRowContext(ctx).Scan(&team.Id, &team.Name, &team.Description); err != nil {
+	if err := query.QueryRowContext(ctx).Scan(&team.Id, &team.Name, &team.Description, &team.IsDeleted); err != nil {
 		return nil, err
 	}
 
@@ -90,6 +93,7 @@ func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, error) {
 	query := sq.Select("*").
 		From(tableName).
+		Where(sq.Eq{"is_deleted": false}).
 		RunWith(r.db).
 		Limit(limit).
 		Offset(offset).
@@ -103,7 +107,7 @@ func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 	var teams []models.Team
 	for rows.Next() {
 		var team models.Team
-		if err := rows.Scan(&team.Id, &team.Name, &team.Description); err != nil {
+		if err := rows.Scan(&team.Id, &team.Name, &team.Description, &team.IsDeleted); err != nil {
 			return nil, err
 		}
 
@@ -114,7 +118,8 @@ func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 }
 
 func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
-	query := sq.Delete(tableName).
+	query := sq.Update(tableName).
+		Set("is_deleted", true).
 		Where(sq.Eq{"id": teamId}).
 		RunWith(r.db).
 		PlaceholderFormat(sq.Dollar)
