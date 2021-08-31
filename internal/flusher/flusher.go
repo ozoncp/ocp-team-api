@@ -7,26 +7,26 @@ import (
 	"github.com/ozoncp/ocp-team-api/internal/utils"
 )
 
-type Flusher interface {
+type IFlusher interface {
 	Flush(ctx context.Context, teams []models.Team) []models.Team
 }
 
-type flusher struct {
+type Flusher struct {
 	chunkSize int
-	teamRepo  repo.Repo
+	teamRepo  repo.IRepo
 }
 
 func NewFlusher(
 	chunkSize int,
-	teamRepo repo.Repo,
-) Flusher {
-	return &flusher{
+	teamRepo repo.IRepo,
+) *Flusher {
+	return &Flusher{
 		chunkSize: chunkSize,
 		teamRepo:  teamRepo,
 	}
 }
 
-func (f *flusher) Flush(ctx context.Context, teams []models.Team) []models.Team {
+func (f *Flusher) Flush(ctx context.Context, teams []models.Team) []models.Team {
 	batches := utils.SplitToBulks(teams, f.chunkSize)
 
 	failed := make([]models.Team, 0)

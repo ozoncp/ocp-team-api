@@ -19,11 +19,11 @@ import (
 
 type api struct {
 	desc.UnimplementedOcpTeamApiServer
-	repo     repo.Repo
-	producer kafka.Producer
+	repo     repo.IRepo
+	producer kafka.IProducer
 }
 
-func NewOcpTeamApi(repo repo.Repo, producer kafka.Producer) desc.OcpTeamApiServer {
+func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) desc.OcpTeamApiServer {
 	return &api{
 		repo:     repo,
 		producer: producer,

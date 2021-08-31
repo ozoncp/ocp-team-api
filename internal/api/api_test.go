@@ -19,15 +19,15 @@ var _ = Describe("Api", func() {
 		ctrl *gomock.Controller
 
 		s                 desc.OcpTeamApiServer
-		mockRepo          *mocks.MockRepo
-		mockKafkaProducer *mocks.MockProducer
+		mockRepo          *mocks.MockIRepo
+		mockKafkaProducer *mocks.MockIProducer
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
 
-		mockRepo = mocks.NewMockRepo(ctrl)
-		mockKafkaProducer = mocks.NewMockProducer(ctrl)
+		mockRepo = mocks.NewMockIRepo(ctrl)
+		mockKafkaProducer = mocks.NewMockIProducer(ctrl)
 		s = api.NewOcpTeamApi(mockRepo, mockKafkaProducer)
 	})
 

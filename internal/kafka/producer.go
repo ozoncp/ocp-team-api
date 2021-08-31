@@ -6,16 +6,16 @@ import (
 	"github.com/ozoncp/ocp-team-api/internal/config"
 )
 
-type Producer interface {
+type IProducer interface {
 	Send(message Message) error
 }
 
-type producer struct {
+type Producer struct {
 	actor sarama.SyncProducer
 	topic string
 }
 
-func NewProducer() (Producer, error) {
+func NewProducer() (*Producer, error) {
 	saramaConfig := sarama.NewConfig()
 	saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
 	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
@@ -23,10 +23,10 @@ func NewProducer() (Producer, error) {
 
 	p, err := sarama.NewSyncProducer(config.GetInstance().Kafka.Brokers, saramaConfig)
 
-	return &producer{actor: p, topic: config.GetInstance().Kafka.Topic}, err
+	return &Producer{actor: p, topic: config.GetInstance().Kafka.Topic}, err
 }
 
-func (p *producer) Send(message Message) error {
+func (p *Producer) Send(message Message) error {
 	msg, err := prepareMessage(message)
 	if err != nil {
 		return err

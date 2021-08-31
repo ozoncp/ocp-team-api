@@ -15,13 +15,13 @@ const (
 	closed
 )
 
-type Saver interface {
+type ISaver interface {
 	Save(team models.Team) error
 	Close()
 }
 
-type saver struct {
-	flusher  flusher.Flusher
+type Saver struct {
+	flusher  flusher.IFlusher
 	teams    []models.Team
 	teamsCh  chan models.Team
 	doneCh   chan int
@@ -30,12 +30,12 @@ type saver struct {
 	capacity uint
 }
 
-func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) Saver {
+func NewSaver(capacity uint, flusher flusher.IFlusher, interval time.Duration) *Saver {
 	if capacity == 0 || interval <= 0 {
 		return nil
 	}
 
-	s := &saver{
+	s := &Saver{
 		flusher:  flusher,
 		teams:    make([]models.Team, 0, capacity),
 		teamsCh:  make(chan models.Team),
@@ -70,13 +70,13 @@ func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) Sa
 	return s
 }
 
-func (s *saver) flush() {
+func (s *Saver) flush() {
 	failed := s.flusher.Flush(context.TODO(), s.teams)
 	s.teams = make([]models.Team, 0, s.capacity)
 	s.teams = append(s.teams, failed...)
 }
 
-func (s *saver) Save(team models.Team) error {
+func (s *Saver) Save(team models.Team) error {
 	if s.state == closed {
 		return errors.New("cannot save to the closed saver")
 	}
@@ -86,7 +86,7 @@ func (s *saver) Save(team models.Team) error {
 	return nil
 }
 
-func (s *saver) Close() {
+func (s *Saver) Close() {
 	if s.state == closed {
 		return
 	}

@@ -13,7 +13,7 @@ const (
 	tableName = "team"
 )
 
-type Repo interface {
+type IRepo interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
 	CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error)
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
@@ -24,15 +24,15 @@ type Repo interface {
 	SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error)
 }
 
-func NewRepo(db *sqlx.DB) Repo {
-	return &repo{db}
+func NewRepo(db *sqlx.DB) *Repo {
+	return &Repo{db}
 }
 
-type repo struct {
+type Repo struct {
 	db *sqlx.DB
 }
 
-func (r *repo) CreateTeam(ctx context.Context, team *models.Team) error {
+func (r *Repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		Values(team.Name, team.Description).
@@ -45,7 +45,7 @@ func (r *repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	return err
 }
 
-func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
+func (r *Repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		Suffix("RETURNING id").
@@ -76,7 +76,7 @@ func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, 
 	return ids, nil
 }
 
-func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
+func (r *Repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.And{
@@ -94,7 +94,7 @@ func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	return &team, nil
 }
 
-func (r *repo) CountTeams(ctx context.Context) (uint64, error) {
+func (r *Repo) CountTeams(ctx context.Context) (uint64, error) {
 	var total uint64
 	query := sq.Select("COUNT(*)").
 		From(tableName).
@@ -109,7 +109,7 @@ func (r *repo) CountTeams(ctx context.Context) (uint64, error) {
 	return total, nil
 }
 
-func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
+func (r *Repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.Eq{"is_deleted": false}).
@@ -142,7 +142,7 @@ func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 	return teams, total, nil
 }
 
-func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
+func (r *Repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	query := sq.Update(tableName).
 		Set("is_deleted", true).
 		Where(sq.Eq{"id": teamId}).
@@ -153,7 +153,7 @@ func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	return err
 }
 
-func (r *repo) UpdateTeam(ctx context.Context, team *models.Team) error {
+func (r *Repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Update(tableName).
 		Set("name", team.Name).
 		Set("description", team.Description).
@@ -166,7 +166,7 @@ func (r *repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	return err
 }
 
-func (r *repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
+func (r *Repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
 	var querySql string
 	switch searchType {
 	case utils.Plain:

@@ -13,13 +13,13 @@ import (
 var _ = Describe("Saver", func() {
 	var (
 		ctrl        *gomock.Controller
-		mockFlusher *mocks.MockFlusher
-		s           saver.Saver
+		mockFlusher *mocks.MockIFlusher
+		s           saver.ISaver
 	)
 
 	BeforeEach(func() {
 		ctrl = gomock.NewController(GinkgoT())
-		mockFlusher = mocks.NewMockFlusher(ctrl)
+		mockFlusher = mocks.NewMockIFlusher(ctrl)
 	})
 
 	AfterEach(func() {
