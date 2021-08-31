@@ -17,23 +17,23 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-// TeamAPI is the struct that implements protobuf-interface.
-type TeamAPI struct {
+// api is the struct that implements protobuf-interface.
+type api struct {
 	desc.UnimplementedOcpTeamApiServer
-	repo     repo.IRepo
-	producer kafka.IProducer
+	repo     repo.Repo
+	producer kafka.Producer
 }
 
-// NewOcpTeamApi is the constructor method for TeamAPI struct.
-func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) *TeamAPI {
-	return &TeamAPI{
+// NewOcpTeamApi is the constructor method for api struct.
+func NewOcpTeamApi(repo repo.Repo, producer kafka.Producer) *api {
+	return &api{
 		repo:     repo,
 		producer: producer,
 	}
 }
 
 // CreateTeamV1 is the method that handles creating new team.
-func (a *TeamAPI) CreateTeamV1(
+func (a *api) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -69,7 +69,7 @@ func (a *TeamAPI) CreateTeamV1(
 }
 
 // MultiCreateTeamV1 is the method that handles creating multiple teams.
-func (a *TeamAPI) MultiCreateTeamV1(
+func (a *api) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -118,7 +118,7 @@ func (a *TeamAPI) MultiCreateTeamV1(
 }
 
 // GetTeamV1 is the method that handles fetching requested team.
-func (a *TeamAPI) GetTeamV1(
+func (a *api) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -146,7 +146,7 @@ func (a *TeamAPI) GetTeamV1(
 }
 
 // ListTeamsV1 is the method that handles fetching multiple teams using pagination settings.
-func (a *TeamAPI) ListTeamsV1(
+func (a *api) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -177,7 +177,7 @@ func (a *TeamAPI) ListTeamsV1(
 }
 
 // RemoveTeamV1 is the method that handles removing team by id if exists.
-func (a *TeamAPI) RemoveTeamV1(
+func (a *api) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -208,7 +208,7 @@ func (a *TeamAPI) RemoveTeamV1(
 }
 
 // UpdateTeamV1 is the method that handles updating corresponding team.
-func (a *TeamAPI) UpdateTeamV1(
+func (a *api) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -242,7 +242,7 @@ func (a *TeamAPI) UpdateTeamV1(
 }
 
 // SearchTeamsV1 is the method that handles teams searching.
-func (a *TeamAPI) SearchTeamsV1(
+func (a *api) SearchTeamsV1(
 	ctx context.Context,
 	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()

@@ -7,30 +7,30 @@ import (
 	"github.com/ozoncp/ocp-team-api/internal/utils"
 )
 
-// IFlusher is the interface for flushing teams into repo.
-type IFlusher interface {
+// Flusher is the interface for flushing teams into repo.
+type Flusher interface {
 	Flush(ctx context.Context, teams []models.Team) []models.Team
 }
 
-// Flusher is the struct that implements IFlusher interface.
-type Flusher struct {
+// flusher is the struct that implements Flusher interface.
+type flusher struct {
 	chunkSize int
-	teamRepo  repo.IRepo
+	teamRepo  repo.Repo
 }
 
-// NewFlusher is the constructor method for Flusher struct.
+// NewFlusher is the constructor method for flusher struct.
 func NewFlusher(
 	chunkSize int,
-	teamRepo repo.IRepo,
-) *Flusher {
-	return &Flusher{
+	teamRepo repo.Repo,
+) *flusher {
+	return &flusher{
 		chunkSize: chunkSize,
 		teamRepo:  teamRepo,
 	}
 }
 
-// Flush is the method that creates new teams using repo.IRepo batch-by-batch.
-func (f *Flusher) Flush(ctx context.Context, teams []models.Team) []models.Team {
+// Flush is the method that creates new teams using repo.Repo batch-by-batch.
+func (f *flusher) Flush(ctx context.Context, teams []models.Team) []models.Team {
 	batches := utils.SplitToBulks(teams, f.chunkSize)
 
 	failed := make([]models.Team, 0)

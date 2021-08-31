@@ -13,8 +13,8 @@ const (
 	tableName = "team"
 )
 
-// IRepo is the interface that wraps storage operations on team table.
-type IRepo interface {
+// Repo is the interface that wraps storage operations on team table.
+type Repo interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
 	CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error)
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
@@ -25,19 +25,19 @@ type IRepo interface {
 	SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error)
 }
 
-// NewRepo is the constructor method for Repo struct.
-func NewRepo(db *sqlx.DB) *Repo {
-	return &Repo{db}
+// NewRepo is the constructor method for repo struct.
+func NewRepo(db *sqlx.DB) *repo {
+	return &repo{db}
 }
 
-// Repo is the struct that implements IRepo interface through sqlx library.
-type Repo struct {
+// repo is the struct that implements Repo interface through sqlx library.
+type repo struct {
 	db *sqlx.DB
 }
 
 // CreateTeam is the method for creating new team through SQL INSERT.
 // It returns error if INSERT query failed.
-func (r *Repo) CreateTeam(ctx context.Context, team *models.Team) error {
+func (r *repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		Values(team.Name, team.Description).
@@ -54,7 +54,7 @@ func (r *Repo) CreateTeam(ctx context.Context, team *models.Team) error {
 // It returns slice of uint64 ids (each number relates to generated id of
 // corresponding team).
 // It returns error if INSERT query failed.
-func (r *Repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
+func (r *repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
 		Suffix("RETURNING id").
@@ -88,7 +88,7 @@ func (r *Repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, 
 // GetTeam is the method for fetching team from the database through SELECT query.
 // If query succeed it returns pointer of the fetched team and nil for error.
 // If query failed it returns nil instead of team pointer and error.
-func (r *Repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
+func (r *repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.And{
@@ -110,7 +110,7 @@ func (r *Repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 // in the database.
 // It returns zero for amount of teams and error if any error
 // occurred during query execution.
-func (r *Repo) CountTeams(ctx context.Context) (uint64, error) {
+func (r *repo) CountTeams(ctx context.Context) (uint64, error) {
 	var total uint64
 	query := sq.Select("COUNT(*)").
 		From(tableName).
@@ -130,7 +130,7 @@ func (r *Repo) CountTeams(ctx context.Context) (uint64, error) {
 // It returns fetched teams, amount of teams (fetched through CountTeams method) and nil for error
 // if no error occurred. If any error occurred through query execution, the return tuple is the
 // following: (nil, 0, error).
-func (r *Repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
+func (r *repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
 		Where(sq.Eq{"is_deleted": false}).
@@ -167,7 +167,7 @@ func (r *Repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 // using soft delete technique: no team actually deletes, instead
 // it is marked as deleted one.
 // It returns error if such occurred during query execution.
-func (r *Repo) RemoveTeam(ctx context.Context, teamId uint64) error {
+func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	query := sq.Update(tableName).
 		Set("is_deleted", true).
 		Where(sq.Eq{"id": teamId}).
@@ -180,11 +180,14 @@ func (r *Repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 
 // UpdateTeam is the method that updates team with corresponding id
 // in the database.
-func (r *Repo) UpdateTeam(ctx context.Context, team *models.Team) error {
+func (r *repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Update(tableName).
 		Set("name", team.Name).
 		Set("description", team.Description).
-		Where(sq.Eq{"id": team.Id}).
+		Where(sq.And{
+			sq.Eq{"id": team.Id},
+			sq.Eq{"is_deleted": false},
+		}).
 		RunWith(r.db).
 		PlaceholderFormat(sq.Dollar)
 
@@ -195,7 +198,7 @@ func (r *Repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 
 // SearchTeams is the method for Full Text Search (FTS).
 // There are 2 types of search: plaintext-oriented and phrase-oriented.
-func (r *Repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
+func (r *repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
 	var querySql string
 	switch searchType {
 	case utils.Plain:
