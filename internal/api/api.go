@@ -17,20 +17,20 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type api struct {
+type TeamAPI struct {
 	desc.UnimplementedOcpTeamApiServer
 	repo     repo.IRepo
 	producer kafka.IProducer
 }
 
-func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) desc.OcpTeamApiServer {
-	return &api{
+func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) *TeamAPI {
+	return &TeamAPI{
 		repo:     repo,
 		producer: producer,
 	}
 }
 
-func (a *api) CreateTeamV1(
+func (a *TeamAPI) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -65,7 +65,7 @@ func (a *api) CreateTeamV1(
 	return &desc.CreateTeamV1Response{Id: team.Id}, nil
 }
 
-func (a *api) MultiCreateTeamV1(
+func (a *TeamAPI) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -113,7 +113,7 @@ func (a *api) MultiCreateTeamV1(
 	}, nil
 }
 
-func (a *api) GetTeamV1(
+func (a *TeamAPI) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -140,7 +140,7 @@ func (a *api) GetTeamV1(
 	return response, nil
 }
 
-func (a *api) ListTeamsV1(
+func (a *TeamAPI) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -170,7 +170,7 @@ func (a *api) ListTeamsV1(
 	return &desc.ListTeamsV1Response{Total: total, Teams: responseTeams}, nil
 }
 
-func (a *api) RemoveTeamV1(
+func (a *TeamAPI) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -200,7 +200,7 @@ func (a *api) RemoveTeamV1(
 	return &desc.RemoveTeamV1Response{}, nil
 }
 
-func (a *api) UpdateTeamV1(
+func (a *TeamAPI) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
@@ -233,7 +233,7 @@ func (a *api) UpdateTeamV1(
 	return &desc.UpdateTeamV1Response{}, nil
 }
 
-func (a *api) SearchTeamsV1(
+func (a *TeamAPI) SearchTeamsV1(
 	ctx context.Context,
 	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
