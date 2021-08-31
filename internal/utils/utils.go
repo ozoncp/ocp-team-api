@@ -5,6 +5,7 @@ import (
 	"math"
 )
 
+// ReverseMap is the method for reversing map (exchange corresponding keys and values).
 func ReverseMap(m map[string]string) map[string]string {
 	if len(m) == 0 {
 		return m
@@ -19,6 +20,7 @@ func ReverseMap(m map[string]string) map[string]string {
 	return reversed
 }
 
+// FilterSlice is the method for filtering slice.
 func FilterSlice(slice []string, unwanted []string) []string {
 	if len(slice) == 0 || len(unwanted) == 0 {
 		return slice
@@ -40,6 +42,7 @@ func FilterSlice(slice []string, unwanted []string) []string {
 	return filtered
 }
 
+// SplitToBatches is the method for splitting slice of string to batches.
 func SplitToBatches(elements []string, batchSize uint) ([][]string, error) {
 	if len(elements) == 0 {
 		return nil, errors.New("slice must not be empty")
@@ -53,7 +56,7 @@ func SplitToBatches(elements []string, batchSize uint) ([][]string, error) {
 		return [][]string{elements}, nil
 	}
 
-	batches := make([][]string, int(math.Ceil(float64(len(elements)) / float64(batchSize))))
+	batches := make([][]string, int(math.Ceil(float64(len(elements))/float64(batchSize))))
 
 	for i := 0; i < cap(batches); i++ {
 		if start, end := i*int(batchSize), (i+1)*int(batchSize); end < len(elements) {

@@ -3,7 +3,7 @@
 CREATE TABLE team(
     id  SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    description VARCHAR(255) NOT NULL
+    description TEXT NOT NULL
 );
 
 COMMENT ON COLUMN team.id IS 'The ID of team';

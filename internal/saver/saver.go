@@ -15,11 +15,15 @@ const (
 	closed
 )
 
+// Saver is the interface for saving teams.
+// Actual saving to db is done either on ticker event or
+// on when Close() method is called.
 type Saver interface {
 	Save(team models.Team) error
 	Close()
 }
 
+// saver is the struct that implements Saver interface.
 type saver struct {
 	flusher  flusher.Flusher
 	teams    []models.Team
@@ -30,7 +34,9 @@ type saver struct {
 	capacity uint
 }
 
-func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) Saver {
+// NewSaver is the constructor method for saver struct.
+// In addition, it constructs ticker.
+func NewSaver(capacity uint, flusher flusher.Flusher, interval time.Duration) *saver {
 	if capacity == 0 || interval <= 0 {
 		return nil
 	}
@@ -76,6 +82,7 @@ func (s *saver) flush() {
 	s.teams = append(s.teams, failed...)
 }
 
+// Save is the method for adding new team to the save channel.
 func (s *saver) Save(team models.Team) error {
 	if s.state == closed {
 		return errors.New("cannot save to the closed saver")
@@ -86,6 +93,8 @@ func (s *saver) Save(team models.Team) error {
 	return nil
 }
 
+// Close is the method for closing the saver.
+// It sends value to the done channel to close it.
 func (s *saver) Close() {
 	if s.state == closed {
 		return

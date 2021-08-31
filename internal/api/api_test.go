@@ -118,29 +118,13 @@ var _ = Describe("Api", func() {
 	})
 
 	Context("ListTeamsV1()", func() {
-		It("return nothing when limit and offset are default", func() {
+		It("return nothing when limit and offset are minimal", func() {
 			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
 
-			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Team{}, nil)
+			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Team{}, uint64(0), nil)
 
-			req := &desc.ListTeamsV1Request{}
-			expectedResponse := &desc.ListTeamsV1Response{Teams: []*desc.Team{}}
-
-			actualResponse, err := s.ListTeamsV1(context.Background(), req)
-
-			Expect(err).Should(BeNil())
-			Expect(actualResponse).Should(Equal(expectedResponse))
-		})
-	})
-
-	Context("ListTeamsV1()", func() {
-		It("return nothing when limit and offset are default", func() {
-			mockKafkaProducer.EXPECT().Send(gomock.Any()).Return(nil).Times(0)
-
-			mockRepo.EXPECT().ListTeams(gomock.Any(), gomock.Any(), gomock.Any()).Return([]models.Team{}, nil)
-
-			req := &desc.ListTeamsV1Request{}
-			expectedResponse := &desc.ListTeamsV1Response{Teams: []*desc.Team{}}
+			req := &desc.ListTeamsV1Request{Limit: uint64(1)}
+			expectedResponse := &desc.ListTeamsV1Response{Total: uint64(0), Teams: []*desc.Team{}}
 
 			actualResponse, err := s.ListTeamsV1(context.Background(), req)
 
@@ -155,10 +139,10 @@ var _ = Describe("Api", func() {
 				[]models.Team{
 					{Id: uint64(1), Name: "Name", Description: "Description"},
 					{Id: uint64(2), Name: "Name", Description: "Description"},
-				}, nil)
+				}, uint64(2), nil)
 
 			req := &desc.ListTeamsV1Request{Limit: 2, Offset: 2}
-			expectedResponse := &desc.ListTeamsV1Response{Teams: []*desc.Team{
+			expectedResponse := &desc.ListTeamsV1Response{Total: uint64(2), Teams: []*desc.Team{
 				{Id: uint64(1), Name: "Name", Description: "Description"},
 				{Id: uint64(2), Name: "Name", Description: "Description"},
 			}}

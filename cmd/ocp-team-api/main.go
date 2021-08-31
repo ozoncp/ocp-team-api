@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-team-api/internal/api"
+	"github.com/ozoncp/ocp-team-api/internal/config"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
@@ -14,6 +15,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	jaegerMetrics "github.com/uber/jaeger-lib/metrics"
 	"io"
+	"sync/atomic"
 
 	"github.com/rs/zerolog/log"
 	"github.com/uber/jaeger-client-go"
@@ -29,17 +31,7 @@ import (
 	"time"
 )
 
-const (
-	grpcPort           = ":8082"
-	grpcServerEndpoint = "localhost:8082"
-	httpPort           = ":8080"
-	prometheusPort     = ":9100"
-
-	dsn = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
-
-	shutdownTimeout = 5 * time.Second
-)
-
+// createGrpcServer is the method for creating grpc server.
 func createGrpcServer(db *sqlx.DB, producer kafka.Producer) *grpc.Server {
 	grpcServer := grpc.NewServer()
 	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db), producer))
@@ -47,35 +39,80 @@ func createGrpcServer(db *sqlx.DB, producer kafka.Producer) *grpc.Server {
 	return grpcServer
 }
 
+// createHttpGateway is the method for creating http gateway based on grpc endpoint.
 func createHttpGateway(ctx context.Context) *http.Server {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	err := desc.RegisterOcpTeamApiHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+	err := desc.RegisterOcpTeamApiHandlerFromEndpoint(
+		ctx,
+		mux,
+		config.GetInstance().Server.Host+config.GetInstance().Server.GrpcPort,
+		opts,
+	)
 
 	if err != nil {
 		log.Fatal().Msgf("cannot register http handlers %v", err)
 	}
 
 	return &http.Server{
-		Addr:    httpPort,
+		Addr:    config.GetInstance().Server.HttpPort,
 		Handler: mux,
 	}
 }
 
-func createMetricsHttpHandler() *http.Server {
-	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+// createStatusServer is the method for creating status server for liveness and readiness probes.
+func createStatusServer() *http.Server {
+	isReady := &atomic.Value{}
+	isReady.Store(false)
+
+	go func() {
+		log.Debug().Msg("Ready probe is negative by default...")
+		time.Sleep(time.Duration(config.GetInstance().Server.StartupTime) * time.Second)
+		isReady.Store(true)
+		log.Debug().Msg("Ready probe is positive.")
+	}()
+
+	mux := http.DefaultServeMux
+
+	mux.HandleFunc(config.GetInstance().Status.HealthHandler, health)
+	mux.HandleFunc(config.GetInstance().Status.ReadyHandler, ready(isReady))
 
 	return &http.Server{
-		Addr:    prometheusPort,
+		Addr:    config.GetInstance().Status.Port,
 		Handler: mux,
 	}
 }
 
+func health(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+}
+
+func ready(isReady *atomic.Value) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		if isReady == nil || !isReady.Load().(bool) {
+			http.Error(w, http.StatusText(http.StatusServiceUnavailable), http.StatusServiceUnavailable)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+	}
+}
+
+// createMetricsHttpHandler is the method for creating metrics server.
+func createMetricsHttpHandler() *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle(config.GetInstance().Metrics.Handler, promhttp.Handler())
+
+	return &http.Server{
+		Addr:    config.GetInstance().Metrics.Port,
+		Handler: mux,
+	}
+}
+
+// createTracer is the method for creating tracer.
 func createTracer() (opentracing.Tracer, io.Closer, error) {
 	cfg := jaegercfg.Configuration{
-		ServiceName: "ocp_team_api",
+		ServiceName: config.GetInstance().Jaeger.ServiceName,
 		Sampler: &jaegercfg.SamplerConfig{
 			Type:  jaeger.SamplerTypeConst,
 			Param: 1,
@@ -102,8 +139,9 @@ func createTracer() (opentracing.Tracer, io.Closer, error) {
 	return tracer, closer, nil
 }
 
+// db is the method for connecting to the database.
 func db() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("pgx", dsn)
+	db, err := sqlx.Connect("pgx", config.GetInstance().Database.DSN)
 
 	if err != nil {
 		return nil, err
@@ -124,6 +162,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
+	log.Info().Msg("connection with DB established")
 	defer db.Close()
 
 	_, closer, err := createTracer()
@@ -140,24 +179,29 @@ func main() {
 	grpcServer := createGrpcServer(db, kafkaProducer)
 	httpGateway := createHttpGateway(ctx)
 	metricsHttpHandler := createMetricsHttpHandler()
+	statusServer := createStatusServer()
 
 	g.Go(func() error {
-		listen, err := net.Listen("tcp", grpcPort)
+		listen, err := net.Listen("tcp", config.GetInstance().Server.GrpcPort)
 		if err != nil {
 			log.Fatal().Msgf("failed to listen: %v", err)
 		}
 
-		log.Info().Msgf("grpc server started on port %s", grpcPort)
+		log.Info().Msgf("grpc server started on port %s", config.GetInstance().Server.GrpcPort)
 		return grpcServer.Serve(listen)
 	})
 	g.Go(func() error {
-		log.Info().Msgf("http gateway started on port %s", httpPort)
+		log.Info().Msgf("http gateway started on port %s", config.GetInstance().Server.HttpPort)
 		return httpGateway.ListenAndServe()
 	})
 	g.Go(func() error {
-		log.Info().Msgf("metrics http handler started on port %s", prometheusPort)
+		log.Info().Msgf("metrics http handler started on port %s", config.GetInstance().Metrics.Port)
 		metrics.Register()
 		return metricsHttpHandler.ListenAndServe()
+	})
+	g.Go(func() error {
+		log.Info().Msgf("status server started on port %s", config.GetInstance().Status.Port)
+		return statusServer.ListenAndServe()
 	})
 
 	select {
@@ -171,8 +215,17 @@ func main() {
 
 	cancel()
 
-	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, shutdownCtxCancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(config.GetInstance().Server.ShutdownTime)*time.Second,
+	)
 	defer shutdownCtxCancel()
+
+	log.Info().Msg("shutdown status server")
+	err = statusServer.Shutdown(shutdownCtx)
+	if err != nil {
+		log.Debug().Msgf("http status server shutdown failed %v", err)
+	}
 
 	log.Info().Msg("shutdown http gateway")
 	err = httpGateway.Shutdown(shutdownCtx)

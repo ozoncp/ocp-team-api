@@ -1,0 +1,31 @@
+project:
+  name: "Ozon Code Platform Team API"
+
+database:
+  dsn: "postgres://root:root@localhost:5432/postgres?sslmode=disable"
+
+server:
+  host: "localhost"
+  http_port: ":8080"
+  grpc_port: ":8082"
+  startup_time: 2 # seconds
+  shutdown_time: 5 # seconds
+
+status:
+  port: ":9191"
+  health_handler: "/health"
+  ready_handler: "/ready"
+
+jaeger:
+  service_name: "ocp_team_api"
+
+metrics:
+  port: ":9100"
+  handler: "/metrics"
+
+kafka:
+  topic: "team"
+  brokers: ["localhost:9094"]
+
+common:
+  batch_size: 2

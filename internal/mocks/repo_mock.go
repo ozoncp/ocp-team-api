@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	models "github.com/ozoncp/ocp-team-api/internal/models"
+	utils "github.com/ozoncp/ocp-team-api/internal/utils"
 )
 
 // MockRepo is a mock of Repo interface.
@@ -33,6 +34,21 @@ func NewMockRepo(ctrl *gomock.Controller) *MockRepo {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 	return m.recorder
+}
+
+// CountTeams mocks base method.
+func (m *MockRepo) CountTeams(arg0 context.Context) (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountTeams", arg0)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountTeams indicates an expected call of CountTeams.
+func (mr *MockRepoMockRecorder) CountTeams(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTeams", reflect.TypeOf((*MockRepo)(nil).CountTeams), arg0)
 }
 
 // CreateTeam mocks base method.
@@ -80,12 +96,13 @@ func (mr *MockRepoMockRecorder) GetTeam(arg0, arg1 interface{}) *gomock.Call {
 }
 
 // ListTeams mocks base method.
-func (m *MockRepo) ListTeams(arg0 context.Context, arg1, arg2 uint64) ([]models.Team, error) {
+func (m *MockRepo) ListTeams(arg0 context.Context, arg1, arg2 uint64) ([]models.Team, uint64, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListTeams", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]models.Team)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(uint64)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 // ListTeams indicates an expected call of ListTeams.
@@ -108,8 +125,23 @@ func (mr *MockRepoMockRecorder) RemoveTeam(arg0, arg1 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveTeam", reflect.TypeOf((*MockRepo)(nil).RemoveTeam), arg0, arg1)
 }
 
+// SearchTeams mocks base method.
+func (m *MockRepo) SearchTeams(arg0 context.Context, arg1 string, arg2 utils.SearchType) ([]models.Team, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SearchTeams", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]models.Team)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SearchTeams indicates an expected call of SearchTeams.
+func (mr *MockRepoMockRecorder) SearchTeams(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SearchTeams", reflect.TypeOf((*MockRepo)(nil).SearchTeams), arg0, arg1, arg2)
+}
+
 // UpdateTeam mocks base method.
-func (m *MockRepo) UpdateTeam(arg0 context.Context, arg1 models.Team) error {
+func (m *MockRepo) UpdateTeam(arg0 context.Context, arg1 *models.Team) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateTeam", arg0, arg1)
 	ret0, _ := ret[0].(error)

@@ -22,6 +22,7 @@ PHONY: .generate
 				--grpc-gateway_out=pkg/ocp-team-api \
 				--grpc-gateway_opt=logtostderr=true \
 				--grpc-gateway_opt=paths=import \
+				--validate_out lang=go:pkg/ocp-team-api \
 				--swagger_out=allow_merge=true,merge_file_name=api:swagger \
 				api/ocp-team-api/ocp-team-api.proto
 		mv pkg/ocp-team-api/github.com/ozoncp/ocp-team-api/pkg/ocp-team-api/* pkg/ocp-team-api/
@@ -49,6 +50,10 @@ vendor-proto: .vendor-proto
 			mkdir -p  vendor.protogen/google/ &&\
 			mv vendor.protogen/googleapis/google/api vendor.protogen/google &&\
 			rm -rf vendor.protogen/googleapis ;\
+		fi
+		@if [ ! -d vendor.protogen/github.com/envoyproxy ]; then \
+			mkdir -p vendor.protogen/github.com/envoyproxy &&\
+			git clone https://github.com/envoyproxy/protoc-gen-validate vendor.protogen/github.com/envoyproxy/protoc-gen-validate ;\
 		fi
 
 

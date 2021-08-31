@@ -7,7 +7,8 @@ import (
 	"math"
 )
 
-func SplitToBulks(teams []models.Team, batchSize int)[][]models.Team {
+// SplitToBulks is the method for splitting []models.Team to slice of slices (batches).
+func SplitToBulks(teams []models.Team, batchSize int) [][]models.Team {
 	if len(teams) == 0 || batchSize <= 0 {
 		return [][]models.Team{}
 	}
@@ -16,7 +17,7 @@ func SplitToBulks(teams []models.Team, batchSize int)[][]models.Team {
 		return [][]models.Team{teams}
 	}
 
-	batches := make([][]models.Team, int(math.Ceil(float64(len(teams)) / float64(batchSize))))
+	batches := make([][]models.Team, int(math.Ceil(float64(len(teams))/float64(batchSize))))
 
 	for i := 0; i < cap(batches); i++ {
 		if start, end := i*batchSize, (i+1)*batchSize; end < len(teams) {
@@ -29,6 +30,7 @@ func SplitToBulks(teams []models.Team, batchSize int)[][]models.Team {
 	return batches
 }
 
+// TeamsToMap is the method for converting []models.Team to map of models.Team
 func TeamsToMap(teams []models.Team) (map[uint64]models.Team, error) {
 	teamsMap := make(map[uint64]models.Team, 0)
 
