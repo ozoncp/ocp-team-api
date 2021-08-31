@@ -36,6 +36,21 @@ func (m *MockRepo) EXPECT() *MockRepoMockRecorder {
 	return m.recorder
 }
 
+// CountTeams mocks base method.
+func (m *MockRepo) CountTeams(arg0 context.Context) (uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CountTeams", arg0)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CountTeams indicates an expected call of CountTeams.
+func (mr *MockRepoMockRecorder) CountTeams(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CountTeams", reflect.TypeOf((*MockRepo)(nil).CountTeams), arg0)
+}
+
 // CreateTeam mocks base method.
 func (m *MockRepo) CreateTeam(arg0 context.Context, arg1 *models.Team) error {
 	m.ctrl.T.Helper()
