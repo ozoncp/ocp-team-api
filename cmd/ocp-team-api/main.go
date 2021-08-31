@@ -31,7 +31,7 @@ import (
 	"time"
 )
 
-func createGrpcServer(db *sqlx.DB, producer kafka.Producer) *grpc.Server {
+func createGrpcServer(db *sqlx.DB, producer kafka.IProducer) *grpc.Server {
 	grpcServer := grpc.NewServer()
 	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db), producer))
 
