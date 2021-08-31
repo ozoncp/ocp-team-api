@@ -34,12 +34,12 @@ func (a *api) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Create team (name=%s, description=%s)", req.Name, req.Description)
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("CreateTeamV1() was called (name=%s, description=%s)", req.Name, req.Description)
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("CreateTeamV1")
@@ -50,17 +50,17 @@ func (a *api) CreateTeamV1(
 	err := a.repo.CreateTeam(ctx, &team)
 
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	metrics.IncCreateSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(team.Id, kafka.Create))
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 	}
 
-	log.Info().Msgf("new team was created successfully with id=%d", team.Id)
+	log.Debug().Msgf("new team was created successfully with id=%d", team.Id)
 
 	return &desc.CreateTeamV1Response{Id: team.Id}, nil
 }
@@ -69,12 +69,12 @@ func (a *api) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Multi create team")
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("MultiCreateTeamV1() was called with len=%d", len(req.Teams))
 
 	tracer := opentracing.GlobalTracer()
 	parentSpan := tracer.StartSpan("MultiCreateTeamV1")
@@ -117,12 +117,12 @@ func (a *api) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Get team (id=%d)", req.Id)
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("GetTeamV1() was called (id=%d)", req.Id)
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("GetTeamV1")
@@ -131,7 +131,7 @@ func (a *api) GetTeamV1(
 	team, err := a.repo.GetTeam(ctx, req.Id)
 
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -144,12 +144,12 @@ func (a *api) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("List teams (limit=%d, offset=%d)", req.Limit, req.Offset)
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("ListTeamsV1() was called (limit=%d, offset=%d)", req.Limit, req.Offset)
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("ListTeamsV1")
@@ -158,7 +158,7 @@ func (a *api) ListTeamsV1(
 	teams, total, err := a.repo.ListTeams(ctx, req.Limit, req.Offset)
 
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -174,12 +174,12 @@ func (a *api) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Remove team (id=%d)", req.Id)
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("RemoveTeamV1() was called (id=%d)", req.Id)
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("RemoveTeamV1")
@@ -187,14 +187,14 @@ func (a *api) RemoveTeamV1(
 
 	err := a.repo.RemoveTeam(ctx, req.Id)
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	metrics.IncDeleteSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(req.Id, kafka.Delete))
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 	}
 
 	return &desc.RemoveTeamV1Response{}, nil
@@ -204,12 +204,12 @@ func (a *api) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Update team (id=%d)", req.Team.Id)
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msgf("UpdateTeamV1() was called (id=%d)", req.Team.Id)
 
 	tracer := opentracing.GlobalTracer()
 	span := tracer.StartSpan("UpdateTeamV1")
@@ -220,14 +220,14 @@ func (a *api) UpdateTeamV1(
 	err := a.repo.UpdateTeam(ctx, team)
 
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	metrics.IncUpdateSuccessCounter()
 	err = a.producer.Send(kafka.NewMessage(team.Id, kafka.Update))
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 	}
 
 	return &desc.UpdateTeamV1Response{}, nil
@@ -237,16 +237,16 @@ func (a *api) SearchTeamsV1(
 	ctx context.Context,
 	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {
 	metrics.IncTotalRequestsCounter()
-	log.Printf("Search request")
 	if err := req.Validate(); err != nil {
 		metrics.IncInvalidRequestsCounter()
 		log.Error().Err(err).Msg("invalid argument")
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
+	log.Debug().Msg("SearchTeamsV1() was called")
 
 	teams, err := a.repo.SearchTeams(ctx, req.Query, utils.SearchType(req.Type))
 	if err != nil {
-		log.Info().Err(err)
+		log.Error().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 

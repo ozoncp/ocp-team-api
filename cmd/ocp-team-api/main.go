@@ -64,10 +64,10 @@ func createStatusServer() *http.Server {
 	isReady.Store(false)
 
 	go func() {
-		log.Printf("Ready probe is negative by default...")
+		log.Debug().Msg("Ready probe is negative by default...")
 		time.Sleep(time.Duration(config.GetInstance().Server.StartupTime) * time.Second)
 		isReady.Store(true)
-		log.Printf("Ready probe is positive.")
+		log.Debug().Msg("Ready probe is positive.")
 	}()
 
 	mux := http.DefaultServeMux
@@ -156,6 +156,7 @@ func main() {
 	if err != nil {
 		log.Fatal().Msg(err.Error())
 	}
+	log.Info().Msg("connection with DB established")
 	defer db.Close()
 
 	_, closer, err := createTracer()
