@@ -13,6 +13,7 @@ const (
 	tableName = "team"
 )
 
+// IRepo is the interface that wraps storage operations on team table.
 type IRepo interface {
 	CreateTeam(ctx context.Context, team *models.Team) error
 	CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error)
@@ -24,14 +25,18 @@ type IRepo interface {
 	SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error)
 }
 
+// NewRepo is the constructor method for Repo struct.
 func NewRepo(db *sqlx.DB) *Repo {
 	return &Repo{db}
 }
 
+// Repo is the struct that implements IRepo interface through sqlx library.
 type Repo struct {
 	db *sqlx.DB
 }
 
+// CreateTeam is the method for creating new team through SQL INSERT.
+// It returns error if INSERT query failed.
 func (r *Repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
@@ -45,6 +50,10 @@ func (r *Repo) CreateTeam(ctx context.Context, team *models.Team) error {
 	return err
 }
 
+// CreateTeams is the method for creating multiple teams through SQL INSERT.
+// It returns slice of uint64 ids (each number relates to generated id of
+// corresponding team).
+// It returns error if INSERT query failed.
 func (r *Repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, error) {
 	query := sq.Insert(tableName).
 		Columns("name", "description").
@@ -76,6 +85,9 @@ func (r *Repo) CreateTeams(ctx context.Context, teams []models.Team) ([]uint64, 
 	return ids, nil
 }
 
+// GetTeam is the method for fetching team from the database through SELECT query.
+// If query succeed it returns pointer of the fetched team and nil for error.
+// If query failed it returns nil instead of team pointer and error.
 func (r *Repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
@@ -94,6 +106,10 @@ func (r *Repo) GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	return &team, nil
 }
 
+// CountTeams is the method for retrieving the amount of teams
+// in the database.
+// It returns zero for amount of teams and error if any error
+// occurred during query execution.
 func (r *Repo) CountTeams(ctx context.Context) (uint64, error) {
 	var total uint64
 	query := sq.Select("COUNT(*)").
@@ -109,6 +125,11 @@ func (r *Repo) CountTeams(ctx context.Context) (uint64, error) {
 	return total, nil
 }
 
+// ListTeams is the method for retrieving multiple teams from the database through SELECT query.
+// In addition, it accepts pagination parameters: limit, offset for fetching various data.
+// It returns fetched teams, amount of teams (fetched through CountTeams method) and nil for error
+// if no error occurred. If any error occurred through query execution, the return tuple is the
+// following: (nil, 0, error).
 func (r *Repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error) {
 	query := sq.Select("id", "name", "description").
 		From(tableName).
@@ -142,6 +163,10 @@ func (r *Repo) ListTeams(ctx context.Context, limit, offset uint64) ([]models.Te
 	return teams, total, nil
 }
 
+// RemoveTeam is the method that removes team from the database by id
+// using soft delete technique: no team actually deletes, instead
+// it is marked as deleted one.
+// It returns error if such occurred during query execution.
 func (r *Repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	query := sq.Update(tableName).
 		Set("is_deleted", true).
@@ -153,6 +178,8 @@ func (r *Repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	return err
 }
 
+// UpdateTeam is the method that updates team with corresponding id
+// in the database.
 func (r *Repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Update(tableName).
 		Set("name", team.Name).
@@ -166,6 +193,8 @@ func (r *Repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	return err
 }
 
+// SearchTeams is the method for Full Text Search (FTS).
+// There are 2 types of search: plaintext-oriented and phrase-oriented.
 func (r *Repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
 	var querySql string
 	switch searchType {

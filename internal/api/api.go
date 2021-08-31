@@ -17,12 +17,14 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+// TeamAPI is the struct that implements protobuf-interface.
 type TeamAPI struct {
 	desc.UnimplementedOcpTeamApiServer
 	repo     repo.IRepo
 	producer kafka.IProducer
 }
 
+// NewOcpTeamApi is the constructor method for TeamAPI struct.
 func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) *TeamAPI {
 	return &TeamAPI{
 		repo:     repo,
@@ -30,6 +32,7 @@ func NewOcpTeamApi(repo repo.IRepo, producer kafka.IProducer) *TeamAPI {
 	}
 }
 
+// CreateTeamV1 is the method that handles creating new team.
 func (a *TeamAPI) CreateTeamV1(
 	ctx context.Context,
 	req *desc.CreateTeamV1Request) (*desc.CreateTeamV1Response, error) {
@@ -65,6 +68,7 @@ func (a *TeamAPI) CreateTeamV1(
 	return &desc.CreateTeamV1Response{Id: team.Id}, nil
 }
 
+// MultiCreateTeamV1 is the method that handles creating multiple teams.
 func (a *TeamAPI) MultiCreateTeamV1(
 	ctx context.Context,
 	req *desc.MultiCreateTeamV1Request) (*desc.MultiCreateTeamV1Response, error) {
@@ -113,6 +117,7 @@ func (a *TeamAPI) MultiCreateTeamV1(
 	}, nil
 }
 
+// GetTeamV1 is the method that handles fetching requested team.
 func (a *TeamAPI) GetTeamV1(
 	ctx context.Context,
 	req *desc.GetTeamV1Request) (*desc.GetTeamV1Response, error) {
@@ -140,6 +145,7 @@ func (a *TeamAPI) GetTeamV1(
 	return response, nil
 }
 
+// ListTeamsV1 is the method that handles fetching multiple teams using pagination settings.
 func (a *TeamAPI) ListTeamsV1(
 	ctx context.Context,
 	req *desc.ListTeamsV1Request) (*desc.ListTeamsV1Response, error) {
@@ -170,6 +176,7 @@ func (a *TeamAPI) ListTeamsV1(
 	return &desc.ListTeamsV1Response{Total: total, Teams: responseTeams}, nil
 }
 
+// RemoveTeamV1 is the method that handles removing team by id if exists.
 func (a *TeamAPI) RemoveTeamV1(
 	ctx context.Context,
 	req *desc.RemoveTeamV1Request) (*desc.RemoveTeamV1Response, error) {
@@ -200,6 +207,7 @@ func (a *TeamAPI) RemoveTeamV1(
 	return &desc.RemoveTeamV1Response{}, nil
 }
 
+// UpdateTeamV1 is the method that handles updating corresponding team.
 func (a *TeamAPI) UpdateTeamV1(
 	ctx context.Context,
 	req *desc.UpdateTeamV1Request) (*desc.UpdateTeamV1Response, error) {
@@ -233,6 +241,7 @@ func (a *TeamAPI) UpdateTeamV1(
 	return &desc.UpdateTeamV1Response{}, nil
 }
 
+// SearchTeamsV1 is the method that handles teams searching.
 func (a *TeamAPI) SearchTeamsV1(
 	ctx context.Context,
 	req *desc.SearchTeamV1Request) (*desc.SearchTeamV1Response, error) {

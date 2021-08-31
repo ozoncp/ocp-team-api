@@ -31,6 +31,7 @@ import (
 	"time"
 )
 
+// createGrpcServer is the method for creating grpc server.
 func createGrpcServer(db *sqlx.DB, producer kafka.IProducer) *grpc.Server {
 	grpcServer := grpc.NewServer()
 	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db), producer))
@@ -38,6 +39,7 @@ func createGrpcServer(db *sqlx.DB, producer kafka.IProducer) *grpc.Server {
 	return grpcServer
 }
 
+// createHttpGateway is the method for creating http gateway based on grpc endpoint.
 func createHttpGateway(ctx context.Context) *http.Server {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
@@ -59,6 +61,7 @@ func createHttpGateway(ctx context.Context) *http.Server {
 	}
 }
 
+// createStatusServer is the method for creating status server for liveness and readiness probes.
 func createStatusServer() *http.Server {
 	isReady := &atomic.Value{}
 	isReady.Store(false)
@@ -95,6 +98,7 @@ func ready(isReady *atomic.Value) http.HandlerFunc {
 	}
 }
 
+// createMetricsHttpHandler is the method for creating metrics server.
 func createMetricsHttpHandler() *http.Server {
 	mux := http.NewServeMux()
 	mux.Handle(config.GetInstance().Metrics.Handler, promhttp.Handler())
@@ -105,6 +109,7 @@ func createMetricsHttpHandler() *http.Server {
 	}
 }
 
+// createTracer is the method for creating tracer.
 func createTracer() (opentracing.Tracer, io.Closer, error) {
 	cfg := jaegercfg.Configuration{
 		ServiceName: config.GetInstance().Jaeger.ServiceName,
@@ -134,6 +139,7 @@ func createTracer() (opentracing.Tracer, io.Closer, error) {
 	return tracer, closer, nil
 }
 
+// db is the method for connecting to the database.
 func db() (*sqlx.DB, error) {
 	db, err := sqlx.Connect("pgx", config.GetInstance().Database.DSN)
 

@@ -1,5 +1,6 @@
 package kafka
 
+// Event is the type of action happened: Create, Update, Delete.
 type Event int
 
 const (
@@ -14,6 +15,7 @@ var eventMapper = map[Event]string{
 	Delete: "Delete",
 }
 
+// String is the method for converting Event type to corresponding string.
 func (e Event) String() string {
 	if value, ok := eventMapper[e]; ok {
 		return value
@@ -22,6 +24,7 @@ func (e Event) String() string {
 	return "Unknown"
 }
 
+// NewMessage is the constructor method for Message struct.
 func NewMessage(Id uint64, Event Event) Message {
 	return Message{
 		Id:    Id,
@@ -29,6 +32,7 @@ func NewMessage(Id uint64, Event Event) Message {
 	}
 }
 
+// Message is the struct that representing message to be sent to broker.
 type Message struct {
 	Id    uint64 `json:"id"`
 	Event string `json:"event"`

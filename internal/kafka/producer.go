@@ -6,15 +6,19 @@ import (
 	"github.com/ozoncp/ocp-team-api/internal/config"
 )
 
+// IProducer is the interface for sending messages to broker.
 type IProducer interface {
 	Send(message Message) error
 }
 
+// Producer is the struct that implements IProducer interface.
 type Producer struct {
 	actor sarama.SyncProducer
 	topic string
 }
 
+// NewProducer is the constructor method for Producer struct.
+// It returns error if such occurred during constructing.
 func NewProducer() (*Producer, error) {
 	saramaConfig := sarama.NewConfig()
 	saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
@@ -26,6 +30,9 @@ func NewProducer() (*Producer, error) {
 	return &Producer{actor: p, topic: config.GetInstance().Kafka.Topic}, err
 }
 
+// Send is the method that sends message to the broker.
+// It returns error if such occurred during either
+// message preparing or sending.
 func (p *Producer) Send(message Message) error {
 	msg, err := prepareMessage(message)
 	if err != nil {
