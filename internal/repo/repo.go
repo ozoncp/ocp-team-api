@@ -2,10 +2,11 @@ package repo
 
 import (
 	"context"
-	"database/sql"
+	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/jmoiron/sqlx"
 	"github.com/ozoncp/ocp-team-api/internal/models"
+	"github.com/ozoncp/ocp-team-api/internal/utils"
 )
 
 const (
@@ -18,8 +19,8 @@ type Repo interface {
 	GetTeam(ctx context.Context, teamId uint64) (*models.Team, error)
 	ListTeams(ctx context.Context, limit, offset uint64) ([]models.Team, uint64, error)
 	RemoveTeam(ctx context.Context, teamId uint64) error
-	UpdateTeam(ctx context.Context, team models.Team) error
-	SearchTeams(ctx context.Context, query string, searchType uint8) ([]models.Team, error)
+	UpdateTeam(ctx context.Context, team *models.Team) error
+	SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error)
 }
 
 func NewRepo(db *sqlx.DB) Repo {
@@ -142,7 +143,7 @@ func (r *repo) RemoveTeam(ctx context.Context, teamId uint64) error {
 	return err
 }
 
-func (r *repo) UpdateTeam(ctx context.Context, team models.Team) error {
+func (r *repo) UpdateTeam(ctx context.Context, team *models.Team) error {
 	query := sq.Update(tableName).
 		Set("name", team.Name).
 		Set("description", team.Description).
@@ -155,21 +156,20 @@ func (r *repo) UpdateTeam(ctx context.Context, team models.Team) error {
 	return err
 }
 
-func (r *repo) SearchTeams(ctx context.Context, query string, searchType uint8) ([]models.Team, error) {
-	plainTextQuery := `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
+func (r *repo) SearchTeams(ctx context.Context, query string, searchType utils.SearchType) ([]models.Team, error) {
+	var querySql string
+	switch searchType {
+	case utils.Plain:
+		querySql = `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
 			plainto_tsquery($1) AS q WHERE is_deleted = FALSE AND tsv @@ q ORDER BY ts_rank(tsv, q) DESC`
-
-	phraseTextQuery := `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
+	case utils.Phrase:
+		querySql = `SELECT id, ts_headline(name, q), ts_headline(description, q) FROM team, 
 			phraseto_tsquery($1) AS q WHERE is_deleted = FALSE AND tsv @@ q ORDER BY ts_rank(tsv, q) DESC`
-
-	var rows *sql.Rows
-	var err error
-	if searchType == uint8(0) {
-		rows, err = r.db.QueryContext(ctx, plainTextQuery, query)
-	} else {
-		rows, err = r.db.QueryContext(ctx, phraseTextQuery, query)
+	default:
+		return nil, errors.New("incorrect search type")
 	}
 
+	rows, err := r.db.QueryContext(ctx, querySql, query)
 	if err != nil {
 		return nil, err
 	}

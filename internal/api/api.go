@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-team-api/internal/config"
+	"github.com/ozoncp/ocp-team-api/internal/converter"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/models"
@@ -134,13 +135,7 @@ func (a *api) GetTeamV1(
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	response := &desc.GetTeamV1Response{
-		Team: &desc.Team{
-			Id:          team.Id,
-			Name:        team.Name,
-			Description: team.Description,
-		},
-	}
+	response := &desc.GetTeamV1Response{Team: converter.TeamToDTO(team)}
 
 	return response, nil
 }
@@ -169,11 +164,7 @@ func (a *api) ListTeamsV1(
 
 	responseTeams := make([]*desc.Team, 0, len(teams))
 	for _, team := range teams {
-		responseTeams = append(responseTeams, &desc.Team{
-			Id:          team.Id,
-			Name:        team.Name,
-			Description: team.Description,
-		})
+		responseTeams = append(responseTeams, converter.TeamToDTO(&team))
 	}
 
 	return &desc.ListTeamsV1Response{Total: total, Teams: responseTeams}, nil
@@ -224,11 +215,7 @@ func (a *api) UpdateTeamV1(
 	span := tracer.StartSpan("UpdateTeamV1")
 	defer span.Finish()
 
-	team := models.Team{
-		Id:          req.Team.Id,
-		Name:        req.Team.Name,
-		Description: req.Team.Description,
-	}
+	team := converter.TeamFromDTO(req.Team)
 
 	err := a.repo.UpdateTeam(ctx, team)
 
@@ -257,15 +244,7 @@ func (a *api) SearchTeamsV1(
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 
-	var searchType uint8
-	switch req.Type {
-	case desc.SearchTeamV1Request_PLAIN:
-		searchType = uint8(0)
-	case desc.SearchTeamV1Request_PHRASE:
-		searchType = uint8(1)
-	}
-
-	teams, err := a.repo.SearchTeams(ctx, req.Query, searchType)
+	teams, err := a.repo.SearchTeams(ctx, req.Query, utils.SearchType(req.Type))
 	if err != nil {
 		log.Info().Err(err)
 		return nil, status.Error(codes.Internal, err.Error())

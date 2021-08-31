@@ -1,6 +1,8 @@
 package models
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Team struct {
 	Id          uint64 `db:"id"`
