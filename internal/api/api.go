@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/opentracing/opentracing-go"
+	"github.com/ozoncp/ocp-team-api/internal/config"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/models"
@@ -13,10 +14,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-)
-
-const (
-	batchSize = 2
 )
 
 type api struct {
@@ -90,7 +87,7 @@ func (a *api) MultiCreateTeamV1(
 		})
 	}
 
-	batches := utils.SplitToBulks(teams, batchSize)
+	batches := utils.SplitToBulks(teams, config.GetInstance().Common.BatchSize)
 
 	var teamsIds []uint64
 

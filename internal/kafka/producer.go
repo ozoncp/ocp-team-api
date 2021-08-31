@@ -3,13 +3,8 @@ package kafka
 import (
 	"encoding/json"
 	"github.com/Shopify/sarama"
+	"github.com/ozoncp/ocp-team-api/internal/config"
 )
-
-const (
-	topic = "team"
-)
-
-var brokers = []string{"localhost:9094"}
 
 type Producer interface {
 	Send(message Message) error
@@ -21,14 +16,14 @@ type producer struct {
 }
 
 func NewProducer() (Producer, error) {
-	config := sarama.NewConfig()
-	config.Producer.Partitioner = sarama.NewRandomPartitioner
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Return.Successes = true
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Producer.Partitioner = sarama.NewRandomPartitioner
+	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	saramaConfig.Producer.Return.Successes = true
 
-	p, err := sarama.NewSyncProducer(brokers, config)
+	p, err := sarama.NewSyncProducer(config.GetInstance().Kafka.Brokers, saramaConfig)
 
-	return &producer{actor: p, topic: topic}, err
+	return &producer{actor: p, topic: config.GetInstance().Kafka.Topic}, err
 }
 
 func (p *producer) Send(message Message) error {
@@ -49,7 +44,7 @@ func prepareMessage(message Message) (*sarama.ProducerMessage, error) {
 	}
 
 	msg := &sarama.ProducerMessage{
-		Topic:     topic,
+		Topic:     config.GetInstance().Kafka.Topic,
 		Partition: -1,
 		Value:     sarama.StringEncoder(b),
 	}

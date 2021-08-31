@@ -7,6 +7,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/opentracing/opentracing-go"
 	"github.com/ozoncp/ocp-team-api/internal/api"
+	"github.com/ozoncp/ocp-team-api/internal/config"
 	"github.com/ozoncp/ocp-team-api/internal/kafka"
 	"github.com/ozoncp/ocp-team-api/internal/metrics"
 	"github.com/ozoncp/ocp-team-api/internal/repo"
@@ -30,18 +31,6 @@ import (
 	"time"
 )
 
-const (
-	grpcPort           = ":8082"
-	grpcServerEndpoint = "localhost:8082"
-	httpPort           = ":8080"
-	prometheusPort     = ":9100"
-	statusPort         = ":9191"
-
-	dsn = "postgres://root:root@localhost:5432/postgres?sslmode=disable"
-
-	shutdownTimeout = 5 * time.Second
-)
-
 func createGrpcServer(db *sqlx.DB, producer kafka.Producer) *grpc.Server {
 	grpcServer := grpc.NewServer()
 	desc.RegisterOcpTeamApiServer(grpcServer, api.NewOcpTeamApi(repo.NewRepo(db), producer))
@@ -53,14 +42,19 @@ func createHttpGateway(ctx context.Context) *http.Server {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
 
-	err := desc.RegisterOcpTeamApiHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+	err := desc.RegisterOcpTeamApiHandlerFromEndpoint(
+		ctx,
+		mux,
+		config.GetInstance().Server.Host+config.GetInstance().Server.GrpcPort,
+		opts,
+	)
 
 	if err != nil {
 		log.Fatal().Msgf("cannot register http handlers %v", err)
 	}
 
 	return &http.Server{
-		Addr:    httpPort,
+		Addr:    config.GetInstance().Server.HttpPort,
 		Handler: mux,
 	}
 }
@@ -71,18 +65,18 @@ func createStatusServer() *http.Server {
 
 	go func() {
 		log.Printf("Ready probe is negative by default...")
-		time.Sleep(10 * time.Second)
+		time.Sleep(time.Duration(config.GetInstance().Server.StartupTime) * time.Second)
 		isReady.Store(true)
 		log.Printf("Ready probe is positive.")
 	}()
 
 	mux := http.DefaultServeMux
 
-	mux.HandleFunc("/health", health)
-	mux.HandleFunc("/ready", ready(isReady))
+	mux.HandleFunc(config.GetInstance().Status.HealthHandler, health)
+	mux.HandleFunc(config.GetInstance().Status.ReadyHandler, ready(isReady))
 
 	return &http.Server{
-		Addr:    statusPort,
+		Addr:    config.GetInstance().Status.Port,
 		Handler: mux,
 	}
 }
@@ -103,17 +97,17 @@ func ready(isReady *atomic.Value) http.HandlerFunc {
 
 func createMetricsHttpHandler() *http.Server {
 	mux := http.NewServeMux()
-	mux.Handle("/metrics", promhttp.Handler())
+	mux.Handle(config.GetInstance().Metrics.Handler, promhttp.Handler())
 
 	return &http.Server{
-		Addr:    prometheusPort,
+		Addr:    config.GetInstance().Metrics.Port,
 		Handler: mux,
 	}
 }
 
 func createTracer() (opentracing.Tracer, io.Closer, error) {
 	cfg := jaegercfg.Configuration{
-		ServiceName: "ocp_team_api",
+		ServiceName: config.GetInstance().Jaeger.ServiceName,
 		Sampler: &jaegercfg.SamplerConfig{
 			Type:  jaeger.SamplerTypeConst,
 			Param: 1,
@@ -141,7 +135,7 @@ func createTracer() (opentracing.Tracer, io.Closer, error) {
 }
 
 func db() (*sqlx.DB, error) {
-	db, err := sqlx.Connect("pgx", dsn)
+	db, err := sqlx.Connect("pgx", config.GetInstance().Database.DSN)
 
 	if err != nil {
 		return nil, err
@@ -181,25 +175,25 @@ func main() {
 	statusServer := createStatusServer()
 
 	g.Go(func() error {
-		listen, err := net.Listen("tcp", grpcPort)
+		listen, err := net.Listen("tcp", config.GetInstance().Server.GrpcPort)
 		if err != nil {
 			log.Fatal().Msgf("failed to listen: %v", err)
 		}
 
-		log.Info().Msgf("grpc server started on port %s", grpcPort)
+		log.Info().Msgf("grpc server started on port %s", config.GetInstance().Server.GrpcPort)
 		return grpcServer.Serve(listen)
 	})
 	g.Go(func() error {
-		log.Info().Msgf("http gateway started on port %s", httpPort)
+		log.Info().Msgf("http gateway started on port %s", config.GetInstance().Server.HttpPort)
 		return httpGateway.ListenAndServe()
 	})
 	g.Go(func() error {
-		log.Info().Msgf("metrics http handler started on port %s", prometheusPort)
+		log.Info().Msgf("metrics http handler started on port %s", config.GetInstance().Metrics.Port)
 		metrics.Register()
 		return metricsHttpHandler.ListenAndServe()
 	})
 	g.Go(func() error {
-		log.Info().Msgf("status server started on port %s", statusServer)
+		log.Info().Msgf("status server started on port %s", config.GetInstance().Status.Port)
 		return statusServer.ListenAndServe()
 	})
 
@@ -214,7 +208,10 @@ func main() {
 
 	cancel()
 
-	shutdownCtx, shutdownCtxCancel := context.WithTimeout(context.Background(), shutdownTimeout)
+	shutdownCtx, shutdownCtxCancel := context.WithTimeout(
+		context.Background(),
+		time.Duration(config.GetInstance().Server.ShutdownTime)*time.Second,
+	)
 	defer shutdownCtxCancel()
 
 	log.Info().Msg("shutdown status server")
